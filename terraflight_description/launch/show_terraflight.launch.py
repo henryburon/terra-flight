@@ -26,6 +26,10 @@ def generate_launch_description():
                 arguments=['0.254','0','0','0','0','0', 'world','base_footprint'],
             ),
             Node(
+                package="joint_state_publisher",
+                executable="joint_state_publisher",
+            ),
+            Node(
                 package="robot_state_publisher",
                 executable="robot_state_publisher",
                 parameters=[

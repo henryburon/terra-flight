@@ -6,6 +6,10 @@
     <color rgba="0.7529 0.7529 0.7529 1.0"/>
 </material>
 
+<material name="dark">
+    <color rgba="0.2 0.2 0.2 1.0"/>
+</material>
+
 <link name="base_footprint"/>
 
 <joint name="base_joint" type="fixed">
@@ -21,6 +25,24 @@
             <mesh filename="package://terraflight_description/meshes/chassis.stl" scale="1 1 1"/>
         </geometry>
         <material name="grey" />
+    </visual>
+</link>
+
+<joint name="front_left_joint" type="continuous">
+    <parent link="chassis"/>
+    <child link="front_left_wheel"/>
+    <origin xyz="0 0 0"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+
+<link name="front_left_wheel">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <mesh filename="package://terraflight_description/meshes/front_left_wheel.stl" scale="1 1 1"/>
+        </geometry>
+        <material name="dark"/>
     </visual>
 </link>
 
