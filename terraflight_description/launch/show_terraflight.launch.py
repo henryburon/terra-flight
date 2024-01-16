@@ -23,7 +23,7 @@ def generate_launch_description():
             Node(
                 package="tf2_ros",
                 executable="static_transform_publisher",
-                arguments=['0.254','0','0','0','0','0', 'world','base_footprint'],
+                arguments=['0','0','0','0','0','0', 'world','base_footprint'], # x was at 0.254
             ),
             Node(
                 package="joint_state_publisher",

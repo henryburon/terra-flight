@@ -31,14 +31,14 @@
 <joint name="front_left_joint" type="continuous">
     <parent link="chassis"/>
     <child link="front_left_wheel"/>
-    <origin xyz="0 0 0"/>
+    <origin xyz="0 -.3433115 -0.0427975"/>
     <axis xyz="0 1 0"/>
 </joint>
 
 
 <link name="front_left_wheel">
     <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
         <geometry>
             <mesh filename="package://terraflight_description/meshes/front_left_wheel.stl" scale="1 1 1"/>
         </geometry>
