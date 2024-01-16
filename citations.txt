@@ -1,0 +1,2 @@
+[1] Open Source Mars Rover: https://github.com/nasa-jpl/open-source-rover/tree/master
+- Used drive wheel implementation from the open source mars rover.

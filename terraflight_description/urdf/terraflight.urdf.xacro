@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+
+<robot name="terraflight" xmlns:xacro="http://wiki.ros.org/wiki/xacro">
+
+<material name="purple">
+    <color rgba="0.3 0.16 0.52 1.0"/>
+</material>
+
+<link name="base_footprint"/>
+
+<joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="chassis"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+</joint>
+
+<link name="chassis">
+    <visual>
+        <origin xyz="1.0 1.0 1.0" rpy="0 0 0"/>
+        <geometry>
+            <mesh filename="package://terraflight_description/meshes/chassis.stl" scale="1 1 1"/>
+        </geometry>
+        <material name="purple" />
+    </visual>
+</link>
+
+</robot>
