@@ -46,4 +46,59 @@
     </visual>
 </link>
 
+<joint name="back_left_joint" type="continuous">
+    <parent link="chassis"/>
+    <child link="back_left_wheel"/>
+    <origin xyz=".4826 -.3433115 -0.0427975"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+
+<link name="back_left_wheel">
+    <visual>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+        <geometry>
+            <mesh filename="package://terraflight_description/meshes/back_left_wheel.stl" scale="1 1 1"/>
+        </geometry>
+        <material name="dark"/>
+    </visual>
+</link>
+
+<joint name="front_right_joint" type="continuous">
+    <parent link="chassis"/>
+    <child link="front_right_wheel"/>
+    <origin xyz="0 .3433115 -0.0427975"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+
+<link name="front_right_wheel">
+    <visual>
+        <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+        <geometry>
+            <mesh filename="package://terraflight_description/meshes/front_right_wheel.stl" scale="1 1 1"/>
+        </geometry>
+        <material name="dark"/>
+    </visual>
+</link>
+
+<joint name="back_right_joint" type="continuous">
+    <parent link="chassis"/>
+    <child link="back_right_wheel"/>
+    <origin xyz=".4826 .3433115 -0.0427975"/>
+    <axis xyz="0 1 0"/>
+</joint>
+
+
+<link name="back_right_wheel">
+    <visual>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+        <geometry>
+            <mesh filename="package://terraflight_description/meshes/back_right_wheel.stl" scale="1 1 1"/>
+        </geometry>
+        <material name="dark"/>
+    </visual>
+</link>
+
+
 </robot>
