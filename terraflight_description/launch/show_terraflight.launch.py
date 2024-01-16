@@ -21,6 +21,11 @@ def generate_launch_description():
                 ],
             ),
             Node(
+                package="tf2_ros",
+                executable="static_transform_publisher",
+                arguments=['0.254','0','0','0','0','0', 'world','base_footprint'],
+            ),
+            Node(
                 package="robot_state_publisher",
                 executable="robot_state_publisher",
                 parameters=[
@@ -44,9 +49,12 @@ def generate_launch_description():
                 package="rviz2",
                 executable="rviz2",
                 name="rviz2",
+
                 arguments=[
                     "-d",
                     LaunchConfiguration("rviz_terraflight_file"),
+                    "-f",
+                    "world"
                 ],
                 on_exit=Shutdown(),
             ),
