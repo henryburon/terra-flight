@@ -26,6 +26,7 @@
         </geometry>
         <material name="grey" />
     </visual>
+
 </link>
 
 <joint name="front_left_joint" type="continuous">
