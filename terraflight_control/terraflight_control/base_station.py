@@ -16,7 +16,7 @@ class Base_Station(Node):
         self.timer = self.create_timer(0.01, self.timer_callback) # 100 Hz
 
         # Publishers
-        self.joy_pub = self.create_publisher(
+        self.robot_motion_pub = self.create_publisher(
             String,
             'robot_motion',
             10)
@@ -38,7 +38,6 @@ class Base_Station(Node):
 
 
     def timer_callback(self):
-        self.get_logger().info("the base station node is up!", once=True)
 
         self.send_robot_commands()
 
@@ -83,7 +82,7 @@ class Base_Station(Node):
         elif self.dpad[3] == 1:
             robot_motion.data = "left"
         
-        self.joy_pub.publish(robot_motion)
+        self.robot_motion_pub.publish(robot_motion)
         
 
      

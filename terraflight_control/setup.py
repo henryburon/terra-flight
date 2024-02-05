@@ -22,7 +22,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'base_station = terraflight_control.base_station:base_station_entry'
+            'base_station = terraflight_control.base_station:base_station_entry',
+            'robot_control = terraflight_control.robot_control:robot_control_entry'
         ],
     },
 )
