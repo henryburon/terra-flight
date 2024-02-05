@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+import RPi.GPIO as GPIO
 
 
 
@@ -20,13 +21,87 @@ class Robot_Control(Node):
             10)
         
         # Variables
-        self.robot_motion = "stopped"
+        self.robot_motion = "stop"
+
+        # GPIO setup
+        self.front_left = 12
+        self.front_right = 13
+        self.back_left = 18
+        self.back_right = 19
+
+        GPIO.setmode(GPIO.BCM)
+
+        GPIO.setup(self.front_left, GPIO.OUT)
+        GPIO.setup(self.front_right, GPIO.OUT)
+        GPIO.setup(self.back_left, GPIO.OUT)
+        GPIO.setup(self.back_right, GPIO.OUT)
+
+        frequency = 50
+        
+        self.pwm_front_left = GPIO.PWM(self.front_left, frequency)
+        self.pwm_front_right = GPIO.PWM(self.front_right, frequency)
+        self.pwm_back_left = GPIO.PWM(self.back_left, frequency)
+        self.pwm_back_right = GPIO.PWM(self.back_right, frequency)
+
+        duty_cycle = (1375/20000) * 100
+
+        self.pwm_front_left.start(duty_cycle)
+        self.pwm_front_right.start(duty_cycle)
+        self.pwm_back_left.start(duty_cycle)
+        self.pwm_back_right.start(duty_cycle)
+
+
         
     def timer_callback(self):
-        self.get_logger().info(f'Motion is: {self.robot_motion}')
+        self.command_wheels()
 
     def robot_motion_callback(self, msg):
         self.robot_motion = msg.data
+
+    def command_wheels(self):
+        if self.robot_motion == "stop":
+            duty_cycle = (1375/20000) * 100
+
+            self.pwm_front_left.start(duty_cycle)
+            self.pwm_front_right.start(duty_cycle)
+            self.pwm_back_left.start(duty_cycle)
+            self.pwm_back_right.start(duty_cycle)
+
+        elif self.robot_motion == "forward":
+            right_duty_cycle = (1200/20000) * 100
+            left_duty_cycle = (1550/20000) * 100
+
+            self.pwm_front_left.start(left_duty_cycle)
+            self.pwm_front_right.start(right_duty_cycle)
+            self.pwm_back_left.start(left_duty_cycle)
+            self.pwm_back_right.start(right_duty_cycle)
+
+        elif self.robot_motion == "backward":
+            right_duty_cycle = (1550/20000) * 100
+            left_duty_cycle = (1200/20000) * 100
+
+            self.pwm_front_left.start(left_duty_cycle)
+            self.pwm_front_right.start(right_duty_cycle)
+            self.pwm_back_left.start(left_duty_cycle)
+            self.pwm_back_right.start(right_duty_cycle)
+
+        elif self.robot_motion == "right":
+            duty_cycle = (1550/20000) * 100
+
+            self.pwm_front_left.start(duty_cycle)
+            self.pwm_front_right.start(duty_cycle)
+            self.pwm_back_left.start(duty_cycle)
+            self.pwm_back_right.start(duty_cycle)
+
+        elif self.robot_motion == "left":
+            duty_cycle = (1200/20000) * 100
+
+            self.pwm_front_left.start(duty_cycle)
+            self.pwm_front_right.start(duty_cycle)
+            self.pwm_back_left.start(duty_cycle)
+            self.pwm_back_right.start(duty_cycle)
+
+        self.get_logger().info(f'Now moving: {self.robot_motion}')
 
 
 
