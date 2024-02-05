@@ -9,17 +9,20 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name, ['package.xml',
+                                   'launch/base_station.launch.xml',
+                                   'launch/robot.launch.xml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='henry',
-    maintainer_email='henryburon34@gmail.com',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='Henry Buron',
+    maintainer_email='henryburon2024@u.northwestern.edu.com',
+    description='Control terraflight robot',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'base_station = terraflight_control.base_station:base_station_entry'
         ],
     },
 )

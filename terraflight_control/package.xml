@@ -3,9 +3,9 @@
 <package format="3">
   <name>terraflight_control</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="henryburon34@gmail.com">henry</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Control terraflight robot</description>
+  <maintainer email="henryburon2024@u.northwestern.edu">Henry Buron</maintainer>
+  <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
