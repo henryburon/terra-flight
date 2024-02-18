@@ -4,7 +4,6 @@ from sensor_msgs.msg import Image
 import pyrealsense2 as rs
 import cv2
 import numpy as np
-from rclpy.qos import QoSProfile
 
 
 
@@ -12,13 +11,11 @@ class Fetch_Camera(Node):
    def __init__(self):
       super().__init__("fetch_camera")
 
-      qos = QoSProfile(depth=50, reliability=QoSProfile.ReliabilityPolicy.RELIABLE)
-
       # Publishers
-      self.camera_pub = self.create_publisher(Image, "robot_camera", qos)
+      self.camera_pub = self.create_publisher(Image, "robot_camera", 10)
 
       # Timers
-      self.camera_timer = self.create_timer(5, self.publish_image)
+      self.camera_timer = self.create_timer(1/2, self.publish_image)
 
       # Initialization
 
