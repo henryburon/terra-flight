@@ -16,8 +16,12 @@ To access the GPIO pins on the Raspberry Pi, and run the launch file, you must b
    ```
    sudo -i
    cd /home/terra/ws/winter_project
-   source opt/ros/iron/setup.bash
+   source /opt/ros/iron/setup.bash
    source install/setup.bash
    export ROS_DOMAIN_ID=34
    ros2 launch terraflight_control robot.launch.xml
    ```
+3. Use ```sudo halt``` for a clean shutdown.
+
+**Required Packages**
+1. Joy
