@@ -31,7 +31,7 @@ class Fetch_Camera(Node):
 
       # self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
-      self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 6)
+      self.config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 6) # (424, 240)
 
       self.pipeline.start(self.config)
 
@@ -54,7 +54,7 @@ class Fetch_Camera(Node):
       msg.header.frame_id = "color_frame"
       msg.height = color_image.shape[0]
       msg.width = color_image.shape[1]
-      msg.encoding = 'bgr8' # or bgr8?
+      msg.encoding = 'bgr8'
       msg.is_bigendian = False
       msg.step = color_image.shape[1] * color_image.shape[2]
       msg.data = color_image.tobytes()
