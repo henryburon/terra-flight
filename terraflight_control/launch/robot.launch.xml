@@ -2,6 +2,8 @@
 
     <node pkg="terraflight_control" exec="robot_control"/>
 
+    <node pkg="terraflight_control" exec="fetch_camera"/>
+
 
 
 </launch>

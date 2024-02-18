@@ -5,6 +5,13 @@ import pyrealsense2 as rs
 import cv2
 import numpy as np
 
+# This node publishes sensor_msgs/Image onto the /robot_camera topic
+# Run the node with ros2 run terraflight_control fetch_camera
+# The image can be viewed with ros2 run rqt_image_view rqt_image_view
+# Ensure you're on the same ROS_DOMAIN_ID
+# For some reason, seems to work a little better when plugged into USB 2. It also doesn't recognize the USB 3 as 3, it thinks it's 2.1
+
+
 
 
 class Fetch_Camera(Node):
@@ -37,8 +44,6 @@ class Fetch_Camera(Node):
       self.pipeline.start(self.config)
 
 
-
-
    # Called at 100 Hz
    def publish_image(self):
       frames = self.pipeline.wait_for_frames()
@@ -62,8 +67,6 @@ class Fetch_Camera(Node):
 
       self.camera_pub.publish(msg)
       
-      
-
 
 
 def fetch_camera_entry(args=None):
