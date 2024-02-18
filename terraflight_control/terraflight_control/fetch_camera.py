@@ -15,7 +15,7 @@ class Fetch_Camera(Node):
       self.camera_pub = self.create_publisher(Image, "robot_camera", 10)
 
       # Timers
-      self.camera_timer = self.create_timer(1/2, self.publish_image)
+      self.camera_timer = self.create_timer(1/15, self.publish_image)
 
       # Initialization
 
@@ -31,7 +31,7 @@ class Fetch_Camera(Node):
 
       # self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
-      self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 15)
+      self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 6)
 
       self.pipeline.start(self.config)
 
