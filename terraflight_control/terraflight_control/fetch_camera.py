@@ -3,6 +3,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 import pyrealsense2 as rs
 import numpy as np
+import cv2
 
 # This node publishes sensor_msgs/Image onto the /robot_camera topic
 # Run the node with ros2 run terraflight_control fetch_camera
@@ -38,7 +39,7 @@ class Fetch_Camera(Node):
       # self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
       # This works on the Raspberry Pi when streaming at 424, 240
-      self.config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 15) # (424, 240)
+      self.config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 6) # (424, 240)
 
       self.pipeline.start(self.config)
 
@@ -51,7 +52,8 @@ class Fetch_Camera(Node):
          return
       
       # Convert images to numpy arrays
-      color_image = np.asanyarray(color_frame.get_data())
+      # color_image = np.asanyarray(color_frame.get_data())
+      color_image = cv2.resize(color_frame.get_data(), (0,0), fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
 
       # Create Image message
       msg = Image()
