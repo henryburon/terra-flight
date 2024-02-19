@@ -2,7 +2,6 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 import pyrealsense2 as rs
-import cv2
 import numpy as np
 
 # This node publishes sensor_msgs/Image onto the /robot_camera topic

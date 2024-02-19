@@ -14,6 +14,11 @@
 
   <depend>sensor_msgs</depend>
 
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>djitellopy</exec_depend>
+  <exec_depend>opencv-python</exec_depend>
+  
+
   <export>
     <build_type>ament_python</build_type>
   </export>

@@ -103,6 +103,8 @@ class Robot_Control(Node):
 
         self.get_logger().info(f'Now moving: {self.robot_motion}')
 
+        # Next step is to get this working on the raspberry pi
+
 
 
 
