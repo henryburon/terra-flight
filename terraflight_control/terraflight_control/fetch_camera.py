@@ -52,8 +52,9 @@ class Fetch_Camera(Node):
          return
       
       # Convert images to numpy arrays
-      # color_image = np.asanyarray(color_frame.get_data())
-      color_image = cv2.resize(color_frame.get_data(), (0,0), fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+      color_image1 = np.asanyarray(color_frame.get_data())
+
+      color_image= cv2.resize(color_image1, (318,180))
 
       # Create Image message
       msg = Image()
