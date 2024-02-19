@@ -38,7 +38,7 @@ class Fetch_Camera(Node):
       # self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
       # This works on the Raspberry Pi when streaming at 424, 240
-      self.config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 6) # (424, 240)
+      self.config.enable_stream(rs.stream.color, 424, 240, rs.format.bgr8, 15) # (424, 240)
 
       self.pipeline.start(self.config)
 
