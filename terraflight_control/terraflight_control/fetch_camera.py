@@ -22,7 +22,7 @@ class Fetch_Camera(Node):
       self.camera_pub = self.create_publisher(Image, "robot_camera", 10)
 
       # Timers
-      self.camera_timer = self.create_timer(1/5, self.publish_image)
+      self.camera_timer = self.create_timer(1/2, self.publish_image)
 
       # Initialization
 
