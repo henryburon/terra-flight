@@ -12,8 +12,17 @@ class Odometry(Node):
         # Timer to log rotations per second every half second
         self.timer2 = self.create_timer(0.5, self.timer_callback2)
 
+        self.a_front_left = 2 # blue
+        self.b_front_left = 3 # white
+
         self.a_front_right = 24  # blue
         self.b_front_right = 23  # white
+
+        self.a_back_left = 4 # blue
+        self.b_back_left = 17 # white
+
+        self.a_back_right = 27 # blue
+        self.b_back_right = 22 # white
 
         # Set up GPIOs
         GPIO.setmode(GPIO.BCM)
