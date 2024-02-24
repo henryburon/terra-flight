@@ -22,6 +22,8 @@ To access the GPIO pins on the Raspberry Pi, and run the launch file, you must b
    ros2 launch terraflight_control robot.launch.xml
    ```
 3. Use ```sudo halt``` for a clean shutdown.
+4. Wifi
+* The base station (laptop) must be connected to the same network as the Raspberry Pi and the Tello's network.
 
 **Required Packages**
 1. Joy

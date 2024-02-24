@@ -41,7 +41,7 @@ class Drone_Camera(Node):
       msg_img = self.bridge.cv2_to_imgmsg(resized, "rgb8")
       msg_img.header.stamp = self.get_clock().now().to_msg()
       msg_img.header.frame_id = "world"
-      # self.drone_pub.publish(msg_img)
+      self.drone_pub.publish(msg_img)
 
 
 
