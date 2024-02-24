@@ -2,40 +2,43 @@ import rclpy
 from rclpy.node import Node
 import RPi.GPIO as GPIO
 
-
 class Odometry(Node):
-   def __init__(self):
-      super().__init__("odometry")
+    def __init__(self):
+        super().__init__("odometry")
 
-      # Timer
-      self.timer = self.create_timer(0.01, self.timer_callback) # 100 Hz
+        # High-frequency timer to monitor pulses
+        self.timer = self.create_timer(0.001, self.timer_callback)  # 1000 Hz
 
-      self.a_front_right = 24 # blue
-      self.b_front_right = 23 # white
+        # Timer to log rotations per second every half second
+        self.timer2 = self.create_timer(0.5, self.timer_callback2)
 
-      # Set up GPIOs
-      GPIO.setmode(GPIO.BCM)
+        self.a_front_right = 24  # blue
+        self.b_front_right = 23  # white
 
-      GPIO.setup(self.a_front_right, GPIO.IN)
-      GPIO.setup(self.b_front_right, GPIO.IN)
+        # Set up GPIOs
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.a_front_right, GPIO.IN)
+        GPIO.setup(self.b_front_right, GPIO.IN)
 
+        self.front_right_state = None
+        self.counter = 0
 
+    def timer_callback(self):
+        current_state = GPIO.input(self.a_front_right)
+        if current_state != self.front_right_state:
+            self.counter += 1
+        self.front_right_state = current_state
 
-   def timer_callback(self):
-
-      current_state = GPIO.input(self.a_front_right)
-
-      if current_state == GPIO.HIGH:
-         self.get_logger().info("It is HIGH")
-      elif current_state == GPIO.LOW:
-         self.get_logger().info("It is LOW")
-
-
-
-
+    def timer_callback2(self):  # Log rotations per second every 0.5s
+        rotations_per_second = self.counter / 28 / 0.5
+        self.get_logger().info(f"Rotations per sec: {rotations_per_second}")
+        self.counter = 0  # Reset the counter for the next period
 
 def odometry_entry(args=None):
-   rclpy.init(args=args)
-   node = Odometry()
-   rclpy.spin(node)
-   rclpy.shutdown()
+    rclpy.init(args=args)
+    node = Odometry()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    odometry_entry()
