@@ -4,5 +4,7 @@
 
     <node pkg="terraflight_control" exec="base_station"/>
 
+    <include file="$(find-pkg-share terraflight_description)/show_terraflight.launch.py"/>
+
 
 </launch>

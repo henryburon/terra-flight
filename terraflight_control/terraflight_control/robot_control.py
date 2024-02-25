@@ -68,7 +68,7 @@ class Robot_Control(Node):
             self.pwm_back_right.start(duty_cycle)
 
         elif self.robot_motion == "forward":
-            right_duty_cycle = (1200/20000) * 100
+            right_duty_cycle = (1300/20000) * 100 # changed from 1200 to 1300
             left_duty_cycle = (1550/20000) * 100
 
             self.pwm_front_left.start(left_duty_cycle)
