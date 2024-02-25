@@ -10,7 +10,7 @@ class Odometry(Node):
         self.timer = self.create_timer(0.001, self.timer_callback)  # 1000 Hz
 
         # Timer to log rotations per second every half second
-        self.timer2 = self.create_timer(0.5, self.timer_callback2)
+        # self.timer2 = self.create_timer(0.5, self.timer_callback2)
 
         self.a_front_left = 2 # blue
         self.b_front_left = 3 # white
@@ -39,8 +39,8 @@ class Odometry(Node):
         self.front_right_state = current_state
         self.get_logger().info(f"Counter: {self.counter}")
 
-    def timer_callback2(self):  # Log rotations per second every 0.5s
-        rotations_per_second = self.counter / 28 / 0.5
+    # def timer_callback2(self):  # Log rotations per second every 0.5s
+    #     rotations_per_second = self.counter / 28 / 0.5
         # self.get_logger().info(f"Rotations per sec: {rotations_per_second}")
         # self.counter = 0  # Reset the counter for the next period
 
