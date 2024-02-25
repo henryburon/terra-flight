@@ -39,10 +39,10 @@ class Odometry(Node):
         self.front_right_state = current_state
         self.get_logger().info(f"Counter: {self.counter}")
 
-    # def timer_callback2(self):  # Log rotations per second every 0.5s
-    #     rotations_per_second = self.counter / 28 / 0.5
-    #     self.get_logger().info(f"Rotations per sec: {rotations_per_second}")
-    #     self.counter = 0  # Reset the counter for the next period
+    def timer_callback2(self):  # Log rotations per second every 0.5s
+        rotations_per_second = self.counter / 28 / 0.5
+        # self.get_logger().info(f"Rotations per sec: {rotations_per_second}")
+        # self.counter = 0  # Reset the counter for the next period
 
 def odometry_entry(args=None):
     rclpy.init(args=args)
