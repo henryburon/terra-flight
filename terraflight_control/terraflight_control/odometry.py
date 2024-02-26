@@ -38,6 +38,14 @@ class Odometry(Node):
         self.validity_timer = self.create_timer(1, self.validity_timer_callback)  # 1 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
 
+        # Robot config
+        self.robot_config = {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "theta": 0.0
+        }
+
         # Transform broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
 
@@ -84,7 +92,7 @@ class Odometry(Node):
 
         # front left, front right, back left, back right
         self.rotation_measurements = [0, 0, 0, 0]
-        self.actual_rotations = np.array([0, 0, 0, 0])
+        self.total_delta_rotations = np.array([0, 0, 0, 0])
         self.old_rotations = [0, 0, 0, 0]
 
         self.log_counter = 0
@@ -146,22 +154,49 @@ class Odometry(Node):
             check1 = True
 
         if check1:
-            self.actual_rotations = np.float64(self.actual_rotations) + delta_rotations
+            self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
 
 
     def update_robot_config(self):
+        # Update the robot configuration based on the actual rotations of the wheels (do odometry here)
+        total_delta_radians = self.total_delta_rotations * 2.0 * np.pi
+        r = 0.08575 # may need to decrease due to poor inflation
+        D = 0.231775 # half the distance between left and right wheels
+        l = 0.2436 # half the distance between front and back wheels
+        
+        # Find twist Vb
+        H_pseudo_inv = np.array([-1/D, 1/D, 1/D, -1/D],
+                                [1, 1, 1, 1],
+                                [0, 0, 0, 0])
+        reshape_radians = np.reshape(total_delta_radians, (4, 1))
+
+        Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
+
+        self.get_logger().info(f"Vb: {Vb}")
+
+
+
+
+
+
+
+
+
+
+
+
         # update robot configuration
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
         t.header.frame_id = "world"
         t.child_frame_id = "base_footprint"
-        t.transform.translation.x = 0.0
-        t.transform.translation.y = 0.0
-        t.transform.translation.z = 0.0
+        t.transform.translation.x = self.robot_config["x"]
+        t.transform.translation.y = self.robot_config["y"]
+        t.transform.translation.z = self.robot_config["z"]
 
-        q = quaternion_from_euler(0, 0, math.radians(45)) # put theta at ak
+        q = quaternion_from_euler(0, 0, self.robot_config["theta"]) # in radians
         t.transform.rotation.x = q[0]
         t.transform.rotation.y = q[1]
         t.transform.rotation.z = q[2]
