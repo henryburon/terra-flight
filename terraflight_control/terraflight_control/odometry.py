@@ -152,20 +152,20 @@ class Odometry(Node):
     # High-frequency timer to monitor pulses and blindly calculate rotations
     def front_left_callback(self, channel):
         self.front_left_counter += 1
-        self.rotation_measurements[0] = self.front_left_counter / 753.2 / 4
+        self.rotation_measurements[0] = self.front_left_counter / 50
 
     def front_right_callback(self, channel):
         self.front_right_counter += 1
-        self.rotation_measurements[1] = self.front_right_counter / 753.2 / 4
+        self.rotation_measurements[1] = self.front_right_counter / 50
 
     def back_left_callback(self, channel):
         self.back_left_counter += 1
-        self.get_logger().info(f"Back left counter: {self.back_left_counter}")
-        self.rotation_measurements[2] = self.back_left_counter / 753.2 / 4
+        # self.get_logger().info(f"Back left counter: {self.back_left_counter}")
+        self.rotation_measurements[2] = self.back_left_counter / 50
 
     def back_right_callback(self, channel):
         self.back_right_counter += 1
-        self.rotation_measurements[3] = self.back_right_counter / 753.2 / 4
+        self.rotation_measurements[3] = self.back_right_counter / 50
 
     def update_rotations_callback(self): # 100 Hz
 
@@ -181,7 +181,7 @@ class Odometry(Node):
 
             self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
-            # self.get_logger().info(f"Net rotations: {self.net_rotation}")
+            self.get_logger().info(f"Net rotations: {self.net_rotation}")
 
             self.old_rotations = self.rotation_measurements.copy()
 
