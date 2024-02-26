@@ -160,7 +160,8 @@ class Odometry(Node):
             check1 = True
 
         if check1:
-            self.actual_rotations += delta_rotations
+            self.actual_rotations = np.float64(self.actual_rotations) + delta_rotations
+            # self.actual_rotations += delta_rotations
 
         self.get_logger().info(f"Actual rotations: {self.actual_rotations}")
 
