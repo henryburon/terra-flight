@@ -87,6 +87,9 @@ class Odometry(Node):
         self.actual_rotations = np.array([0, 0, 0, 0])
         self.old_rotations = [0, 0, 0, 0]
 
+
+        self.log_counter = 0
+
     def timer_callback(self):
         # Main timer callback. Updates the robot configuration.
         self.update_robot_config()
@@ -126,7 +129,10 @@ class Odometry(Node):
 
         # Right now, this only accounts for forward motion. Will need to account for backward motion as well.
 
-        self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+        self.log_counter += 1
+        if self.log_counter >= 100:
+            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+            self.log_counter = 0  # Reset the counter
 
 
 
@@ -148,7 +154,7 @@ class Odometry(Node):
         
         # check that at least 3 of the 4 values in delta rotation are above 0.5
 
-        threshold = 0.5
+        threshold = 0.05
 
         if np.count_nonzero(delta_rotations > threshold) >= 3:
             check1 = True
