@@ -182,7 +182,7 @@ class Odometry(Node):
         # self.get_logger().info(f"Vb: {Vb}")
 
         # reformat Vb to 6x1
-        Vb6 = np.array(0, 0, Vb[0], Vb[1], Vb[2], 0)
+        Vb6 = np.array([0, 0, Vb[0], Vb[1], Vb[2], 0])
 
         twist_se3 = mr.VecTose3(Vb6)
 
@@ -193,7 +193,7 @@ class Odometry(Node):
         position = integrated_pose[0:3, 3]
     
 
-    
+
         self.robot_config["x"] = position[0]
         self.robot_config["y"] = position[1]
     
