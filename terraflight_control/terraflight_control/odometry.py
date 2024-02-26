@@ -139,11 +139,11 @@ class Odometry(Node):
             self.front_right_direction = -1
             self.back_left_direction = 1
             self.back_right_direction = -1
-        elif self.robot_motion == "stop":
-            self.front_left_direction = 0
-            self.front_right_direction = 0
-            self.back_left_direction = 0
-            self.back_right_direction = 0
+        # elif self.robot_motion == "stop":
+        #     self.front_left_direction = 0
+        #     self.front_right_direction = 0
+        #     self.back_left_direction = 0
+        #     self.back_right_direction = 0
 
     # High-frequency timer to monitor pulses and blindly calculate rotations
     def wheels_timer_callback(self):
@@ -180,10 +180,10 @@ class Odometry(Node):
         self.rotation_measurements[2] = self.back_left_counter / 376.6
         self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-        # self.log_counter += 1
-        # if self.log_counter >= 100:
-        #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
-        #     self.log_counter = 0  # Reset the counter
+        self.log_counter += 1
+        if self.log_counter >= 100:
+            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+            self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
         # check1 = False
@@ -253,8 +253,6 @@ class Odometry(Node):
 
         # self.get_logger().info(f"Total rotations: {self.net_rotation}")
         # self.get_logger().info(f"Robot config: {self.robot_config}")
-
-
 
         # update robot configuration
         t = TransformStamped()
