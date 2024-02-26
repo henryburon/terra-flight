@@ -6,6 +6,28 @@ from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
 import math
 
+def quaternion_from_euler(ai, aj, ak):
+        ai /= 2.0
+        aj /= 2.0
+        ak /= 2.0
+        ci = math.cos(ai)
+        si = math.sin(ai)
+        cj = math.cos(aj)
+        sj = math.sin(aj)
+        ck = math.cos(ak)
+        sk = math.sin(ak)
+        cc = ci*ck
+        cs = ci*sk
+        sc = si*ck
+        ss = si*sk
+
+        q = np.empty((4, ))
+        q[0] = cj*sc - sj*cs
+        q[1] = cj*ss + sj*cc
+        q[2] = cj*cs - sj*sc
+        q[3] = cj*cc + sj*ss
+
+        return q
 
 class Odometry(Node):
     def __init__(self):
@@ -160,7 +182,7 @@ class Odometry(Node):
         t.transform.translation.y = 0.0
         t.transform.translation.z = 0.0
 
-        q = self.quaternion_from_euler(0, 0, 45) # put theta at ak
+        q = quaternion_from_euler(0, 0, math.radians(45)) # put theta at ak
         t.transform.rotation.x = q[0]
         t.transform.rotation.y = q[1]
         t.transform.rotation.z = q[2]
@@ -168,28 +190,7 @@ class Odometry(Node):
 
         self.tf_broadcaster.sendTransform(t)
 
-    def quaternion_from_euler(ai, aj, ak):
-        ai /= 2.0
-        aj /= 2.0
-        ak /= 2.0
-        ci = math.cos(ai)
-        si = math.sin(ai)
-        cj = math.cos(aj)
-        sj = math.sin(aj)
-        ck = math.cos(ak)
-        sk = math.sin(ak)
-        cc = ci*ck
-        cs = ci*sk
-        sc = si*ck
-        ss = si*sk
-
-        q = np.empty((4, ))
-        q[0] = cj*sc - sj*cs
-        q[1] = cj*ss + sj*cc
-        q[2] = cj*cs - sj*sc
-        q[3] = cj*cc + sj*ss
-
-        return q
+    
 
 
 

@@ -42,7 +42,7 @@ class Base_Station(Node):
         self.send_robot_commands()
 
     def joy_callback(self, msg):
-        self.get_logger().info("entering joy callback")
+        # self.get_logger().info("entering joy callback")
 
         # Collect ps3 controller input values
         self.ps3_axes = msg.axes
