@@ -180,10 +180,10 @@ class Odometry(Node):
         self.rotation_measurements[2] = self.back_left_counter / 376.6
         self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-        # self.log_counter += 1
-        # if self.log_counter >= 100:
-        #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
-        #     self.log_counter = 0  # Reset the counter
+        self.log_counter += 1
+        if self.log_counter >= 100:
+            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+            self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
         # check1 = False
@@ -211,7 +211,7 @@ class Odometry(Node):
         self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
-        # self.get_logger().info(f"Total delta rotations: {self.total_delta_rotations}")
+        self.get_logger().info(f"Total delta rotations: {self.total_delta_rotations}")
 
 
     def update_robot_config(self):
@@ -248,7 +248,7 @@ class Odometry(Node):
         # Convert the rotation matrix to Euler angles
         theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
 
-        self.get_logger().info(f"x: {position[0]}, y: {position[1]}, theta: {theta}")
+        # self.get_logger().info(f"x: {position[0]}, y: {position[1]}, theta: {theta}")
 
 
         self.robot_config["x"] = position[0]
@@ -258,7 +258,7 @@ class Odometry(Node):
 
 
         self.get_logger().info(f"Total rotations: {self.total_delta_rotations}")
-        self.get_logger().info(f"Robot config: {self.robot_config}")
+        # self.get_logger().info(f"Robot config: {self.robot_config}")
 
 
 
