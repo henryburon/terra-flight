@@ -107,6 +107,11 @@ class Odometry(Node):
 
         self.log_counter = 0
 
+        self.front_left_direction = 1
+        self.front_right_direction = 1
+        self.back_left_direction = 1
+        self.back_right_direction = 1
+
     def timer_callback(self):
         # Main timer callback. Updates the robot configuration.
         self.update_robot_config()
