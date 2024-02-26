@@ -116,10 +116,10 @@ class Odometry(Node):
 
         self.log_counter = 0
 
-        self.front_left_direction = 1 # change these back to zeroes
-        self.front_right_direction = 1
-        self.back_left_direction = 1
-        self.back_right_direction = 1
+        self.front_left_direction = 0
+        self.front_right_direction = 0
+        self.back_left_direction = 0
+        self.back_right_direction = 0
 
     def timer_callback(self):
         # Main timer callback. Updates the robot configuration.
@@ -152,37 +152,37 @@ class Odometry(Node):
     # High-frequency timer to monitor pulses and blindly calculate rotations
     def front_left_callback(self, channel):
         self.front_left_counter += 1
-        self.rotation_measurements[0] = self.front_left_counter / 753.2
+        self.rotation_measurements[0] = self.front_left_counter / 753.2 / 4
 
     def front_right_callback(self, channel):
         self.front_right_counter += 1
-        self.rotation_measurements[1] = self.front_right_counter / 753.2
+        self.rotation_measurements[1] = self.front_right_counter / 753.2 / 4
 
     def back_left_callback(self, channel):
         self.back_left_counter += 1
-        self.rotation_measurements[2] = self.back_left_counter / 753.2
+        self.rotation_measurements[2] = self.back_left_counter / 753.2 / 4
 
     def back_right_callback(self, channel):
         self.back_right_counter += 1
-        self.rotation_measurements[3] = self.back_right_counter / 753.2
+        self.rotation_measurements[3] = self.back_right_counter / 753.2 / 4
 
     def update_rotations_callback(self): # 100 Hz
 
         # Sensor readings only valid if robot should be moving
-        # if self.robot_motion != "stop":
+        if self.robot_motion != "stop":
 
-        delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
+            delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
 
-        delta_rotations[0] = delta_rotations[0] * self.front_left_direction
-        delta_rotations[1] = delta_rotations[1] * self.front_right_direction
-        delta_rotations[2] = delta_rotations[2] * self.back_left_direction
-        delta_rotations[3] = delta_rotations[3] * self.back_right_direction
+            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
+            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
+            delta_rotations[2] = delta_rotations[2] * self.back_left_direction
+            delta_rotations[3] = delta_rotations[3] * self.back_right_direction
 
-        self.net_rotation = np.float64(self.net_rotation) + delta_rotations
+            self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
-        self.get_logger().info(f"Net rotation: {self.net_rotation}")
+            self.get_logger().info(f"Net rotations: {self.net_rotation}")
 
-        self.old_rotations = self.rotation_measurements.copy()
+            self.old_rotations = self.rotation_measurements.copy()
 
 
 
