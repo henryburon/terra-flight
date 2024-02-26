@@ -5,7 +5,9 @@ import numpy as np
 from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
 import math
+from std_msgs.msg import String
 import modern_robotics as mr
+
 
 def quaternion_from_euler(ai, aj, ak):
         ai /= 2.0
@@ -38,6 +40,13 @@ class Odometry(Node):
         self.wheels_timer = self.create_timer(0.001, self.wheels_timer_callback)  # 1000 Hz
         self.validity_timer = self.create_timer(0.1, self.validity_timer_callback)  # 1 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
+
+        # Subscribers
+        self.robot_motion_sub = self.create_subscription(
+            String,
+            'robot_motion',
+            self.robot_motion_callback,
+            10)
 
         # Robot config
         self.robot_config = {
@@ -102,6 +111,30 @@ class Odometry(Node):
         # Main timer callback. Updates the robot configuration.
         self.update_robot_config()
 
+    def robot_motion_callback(self, msg):
+        self.robot_motion = msg.data
+
+        if self.robot_motion == "forward":
+            self.front_left_direction = 1
+            self.front_right_direction = 1
+            self.back_left_direction = 1
+            self.back_right_direction = 1
+        elif self.robot_motion == "backward":
+            self.front_left_direction = -1
+            self.front_right_direction = -1
+            self.back_left_direction = -1
+            self.back_right_direction = -1
+        elif self.robot_motion == "left":
+            self.front_left_direction = -1
+            self.front_right_direction = 1
+            self.back_left_direction = -1
+            self.back_right_direction = 1
+        elif self.robot_motion == "right":
+            self.front_left_direction = 1
+            self.front_right_direction = -1
+            self.back_left_direction = 1
+            self.back_right_direction = -1
+
     # High-frequency timer to monitor pulses and blindly calculate rotations
     def wheels_timer_callback(self):
 
@@ -155,14 +188,15 @@ class Odometry(Node):
             check1 = True
 
         if check1:
+            # multiply the first item in delta rotations by 7, the rest by 4
+            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
+            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
+            delta_rotations[2] = delta_rotations[2] * self.back_right_direction
+            delta_rotations[3] = delta_rotations[3] * self.back_left_direction
+
             self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
-            
-    def check_spin_direction(self):
-        
-        # when we get status of pin a, check the time
-        pass
 
 
     def update_robot_config(self):
@@ -196,11 +230,15 @@ class Odometry(Node):
         self.get_logger().info(f"Integrated pose: {integrated_pose}")
 
         position = integrated_pose[0:3, 3]
+        rotation_matrix = integrated_pose[0:3, 0:3]
+        # Convert the rotation matrix to Euler angles
+        theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
+
     
-
-
         self.robot_config["x"] = position[0]
         self.robot_config["y"] = position[1]
+        self.robot_config["theta"] = theta
+
     
         # update robot configuration
         t = TransformStamped()
