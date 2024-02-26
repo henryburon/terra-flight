@@ -38,7 +38,7 @@ class Odometry(Node):
 
         # Timer
         self.wheels_timer = self.create_timer(0.001, self.wheels_timer_callback)  # 1000 Hz
-        self.validity_timer = self.create_timer(0.1, self.validity_timer_callback)  # 1 Hz
+        self.validity_timer = self.create_timer(0.1, self.validity_timer_callback)  # 10 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
 
         # Subscribers
@@ -180,12 +180,17 @@ class Odometry(Node):
         self.rotation_measurements[2] = self.back_left_counter / 376.6
         self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-        self.log_counter += 1
-        if self.log_counter >= 100:
-            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
-            self.log_counter = 0  # Reset the counter
+        # self.log_counter += 1
+        # if self.log_counter >= 100:
+        #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+        #     self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
+
+        self.get_logger().info(f"State {self.robot_motion}")
+
+
+
         # check1 = False
     
         delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
@@ -211,7 +216,7 @@ class Odometry(Node):
         self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
-        self.get_logger().info(f"Net rotations for each wheel: {self.net_rotation}")
+        # self.get_logger().info(f"Net rotations for each wheel: {self.net_rotation}")
 
 
     def update_robot_config(self):
@@ -244,12 +249,9 @@ class Odometry(Node):
 
         # self.get_logger().info(f"x: {position[0]}, y: {position[1]}, theta: {theta}")
 
-
         self.robot_config["x"] = position[0]
         self.robot_config["y"] = position[1]
         self.robot_config["theta"] = theta
-
-
 
         # self.get_logger().info(f"Total rotations: {self.net_rotation}")
         # self.get_logger().info(f"Robot config: {self.robot_config}")
@@ -270,11 +272,6 @@ class Odometry(Node):
         t.transform.rotation.w = q[3]
 
         self.tf_broadcaster.sendTransform(t)
-
-    
-
-
-
 
 
 def odometry_entry(args=None):
