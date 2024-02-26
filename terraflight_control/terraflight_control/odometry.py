@@ -87,7 +87,6 @@ class Odometry(Node):
         self.actual_rotations = np.array([0, 0, 0, 0])
         self.old_rotations = [0, 0, 0, 0]
 
-
         self.log_counter = 0
 
     def timer_callback(self):
@@ -134,49 +133,22 @@ class Odometry(Node):
             self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
             self.log_counter = 0  # Reset the counter
 
-
-
     def validity_timer_callback(self): # 10 Hz
         check1 = False
         # Performs a few checks to verify validity of the rotation measurements
         # Decides whether or not to add the measurements to the actual list of rotations
         # delta rotations is the change in rotations from the last time step (0.1s)
         delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
-
-        self.get_logger().info(f"Delta rotations: {delta_rotations}")
-
-
         self.old_rotations = self.rotation_measurements.copy()
 
-        # Check if the rotations are valid
-        # The encoders give false values when the robot is not moving (i.e. display rotation when there is none)
-        # The first check will be to ensure that at least 3 of the wheels have values above a specified threshold
-        
-        # check that at least 3 of the 4 values in delta rotation are above 0.5
-
         threshold = 0.55
-
         if np.count_nonzero(delta_rotations > threshold) >= 3:
             check1 = True
 
         if check1:
             self.actual_rotations = np.float64(self.actual_rotations) + delta_rotations
-            # self.actual_rotations += delta_rotations
 
-        self.get_logger().info(f"Actual rotations: {self.actual_rotations}")
-
-
-
-
-        # only read when im sending commands
-        # and maybe disregard values under 0.5
-        # also disregard if only one wheel is moving, since at least two wheels should be moving at the same time (maybe all 4 should be...)
-        # the wheels can get stuck in a position where it indicates its moving but it really isnt
-
-
-
-
-
+        # Should add a check so it only accepts values when I am sending commands
 
 
     def update_robot_config(self):
