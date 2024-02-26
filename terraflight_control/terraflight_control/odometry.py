@@ -102,7 +102,7 @@ class Odometry(Node):
 
         # front left, front right, back left, back right
         self.rotation_measurements = [0, 0, 0, 0]
-        self.total_delta_rotations = np.array([0, 0, 0, 0])
+        self.net_rotation = np.array([0, 0, 0, 0])
         self.old_rotations = [0, 0, 0, 0]
 
         self.log_counter = 0
@@ -180,10 +180,10 @@ class Odometry(Node):
         self.rotation_measurements[2] = self.back_left_counter / 376.6
         self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-        self.log_counter += 1
-        if self.log_counter >= 100:
-            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
-            self.log_counter = 0  # Reset the counter
+        # self.log_counter += 1
+        # if self.log_counter >= 100:
+        #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+        #     self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
         # check1 = False
@@ -208,15 +208,15 @@ class Odometry(Node):
         delta_rotations[2] = delta_rotations[2] * self.back_left_direction
         delta_rotations[3] = delta_rotations[3] * self.back_right_direction
 
-        self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
+        self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
-        self.get_logger().info(f"Total delta rotations: {self.total_delta_rotations}")
+        self.get_logger().info(f"Net rotations for each wheel: {self.net_rotation}")
 
 
     def update_robot_config(self):
         # Update the robot configuration based on the actual rotations of the wheels (do odometry here)
-        total_delta_radians = self.total_delta_rotations * 2.0 * np.pi
+        net_radians = self.net_rotation * 2.0 * np.pi
         r = 0.08575 # may need to decrease due to poor inflation
         D = 0.231775 # half the distance between left and right wheels
         
@@ -225,26 +225,20 @@ class Odometry(Node):
                                 [1, 1, 1, 1],
                                 [0, 0, 0, 0]])
 
-        reshape_radians = np.array([[total_delta_radians[0]],
-                                     [total_delta_radians[1]],
-                                     [total_delta_radians[3]], # due to the H_pseudo_inv matrix setup
-                                     [total_delta_radians[2]]])
+        reshape_radians = np.array([[net_radians[0]],
+                                     [net_radians[1]],
+                                     [net_radians[3]], # due to the H_pseudo_inv matrix setup
+                                     [net_radians[2]]])
 
         Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
-
-        # self.get_logger().info(f"Vb: {Vb}")
-
-        # reformat Vb to 6x1
         Vb6 = np.array([0, 0, Vb[0][0], Vb[1][0], Vb[2][0], 0])
 
         twist_se3 = mr.VecTose3(Vb6)
-
         integrated_pose = mr.MatrixExp6(twist_se3)
-
-        # self.get_logger().info(f"Integrated pose: {integrated_pose}")
 
         position = integrated_pose[0:3, 3]
         rotation_matrix = integrated_pose[0:3, 0:3]
+
         # Convert the rotation matrix to Euler angles
         theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
 
@@ -257,7 +251,7 @@ class Odometry(Node):
 
 
 
-        self.get_logger().info(f"Total rotations: {self.total_delta_rotations}")
+        # self.get_logger().info(f"Total rotations: {self.net_rotation}")
         # self.get_logger().info(f"Robot config: {self.robot_config}")
 
 
