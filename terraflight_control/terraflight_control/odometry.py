@@ -38,6 +38,7 @@ class Odometry(Node):
         super().__init__("odometry")
 
         # Timer
+        self.wheels_timer = self.create_timer(0.0001, self.wheels_timer_callback)  # 1000 Hz
         self.update_rotations_timer = self.create_timer(0.001, self.update_rotations_callback)  # 10 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
 
@@ -78,24 +79,17 @@ class Odometry(Node):
 
         # Set up GPIOs
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.a_front_left_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.a_front_left_pin, GPIO.IN)
         GPIO.setup(self.b_front_left_pin, GPIO.IN)
 
-        GPIO.setup(self.a_front_right_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.a_front_right_pin, GPIO.IN)
         GPIO.setup(self.b_front_right_pin, GPIO.IN)
 
-        GPIO.setup(self.a_back_right_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.a_back_right_pin, GPIO.IN)
         GPIO.setup(self.b_back_right_pin, GPIO.IN)
 
-        GPIO.setup(self.a_back_left_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.a_back_left_pin, GPIO.IN)
         GPIO.setup(self.b_back_left_pin, GPIO.IN)
-
-         # Register the callback functions
-        GPIO.add_event_detect(self.a_front_left_pin, GPIO.RISING, callback=self.front_left_callback)
-        GPIO.add_event_detect(self.a_front_right_pin, GPIO.RISING, callback=self.front_right_callback)
-        GPIO.add_event_detect(self.a_back_left_pin, GPIO.RISING, callback=self.back_left_callback)
-        GPIO.add_event_detect(self.a_back_right_pin, GPIO.RISING, callback=self.back_right_callback)
-
 
         self.front_left_state = None
         self.front_left_counter = -1
@@ -150,22 +144,44 @@ class Odometry(Node):
             self.back_right_direction = -1
 
     # High-frequency timer to monitor pulses and blindly calculate rotations
-    def front_left_callback(self, channel):
-        self.front_left_counter += 1
-        self.rotation_measurements[0] = self.front_left_counter / 50
+    def wheels_timer_callback(self):
 
-    def front_right_callback(self, channel):
-        self.front_right_counter += 1
-        self.rotation_measurements[1] = self.front_right_counter / 50
+        # Front left wheel
+        front_left_state = GPIO.input(self.a_front_left_pin) # check status of pin a
+        if front_left_state != self.front_left_state:
+            self.front_left_counter += 1
+        self.front_left_state = front_left_state
 
-    def back_left_callback(self, channel):
-        self.back_left_counter += 1
-        # self.get_logger().info(f"Back left counter: {self.back_left_counter}")
-        self.rotation_measurements[2] = self.back_left_counter / 50
+        # Front right wheel
+        front_right_state = GPIO.input(self.a_front_right_pin)
+        if front_right_state != self.front_right_state:
+            self.front_right_counter += 1
+        self.front_right_state = front_right_state
 
-    def back_right_callback(self, channel):
-        self.back_right_counter += 1
-        self.rotation_measurements[3] = self.back_right_counter / 50
+        # Back left wheel
+        back_left_state = GPIO.input(self.a_back_left_pin)
+        if back_left_state != self.back_left_state:
+            self.back_left_counter += 1
+        self.back_left_state = back_left_state
+
+        # Back right wheel
+        back_right_state = GPIO.input(self.a_back_right_pin)
+        if back_right_state != self.back_right_state:
+            self.back_right_counter += 1
+        self.back_right_state = back_right_state
+
+        # Convert to rotations
+        # self.rotation_measurements is the total rotations of the wheels, not accounting
+        # for the direction of the rotation
+        self.rotation_measurements[0] = self.front_left_counter / 376.6 # 376.6 pulses per rotation, via data sheet
+        self.rotation_measurements[1] = self.front_right_counter / 376.6
+        self.rotation_measurements[2] = self.back_left_counter / 376.6
+        self.rotation_measurements[3] = self.back_right_counter / 376.6
+
+        # self.log_counter += 1
+        # if self.log_counter >= 100:
+        #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+        #     self.log_counter = 0  # Reset the counter
 
     def update_rotations_callback(self): # 100 Hz
 
@@ -181,7 +197,7 @@ class Odometry(Node):
 
             self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
-            self.get_logger().info(f"Net rotations: {self.net_rotation}")
+            self.get_logger().info(f"Net rotation: {self.net_rotation}")
 
             self.old_rotations = self.rotation_measurements.copy()
 
@@ -249,7 +265,6 @@ def odometry_entry(args=None):
     rclpy.init(args=args)
     node = Odometry()
     rclpy.spin(node)
-    GPIO.cleanup()
     rclpy.shutdown()
 
 if __name__ == "__main__":
