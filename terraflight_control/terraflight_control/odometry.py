@@ -167,9 +167,9 @@ class Odometry(Node):
         l = 0.2436 # half the distance between front and back wheels
         
         # Find twist Vb
-        H_pseudo_inv = np.array([-1/D, 1/D, 1/D, -1/D],
+        H_pseudo_inv = np.array([[-1/D, 1/D, 1/D, -1/D],
                                 [1, 1, 1, 1],
-                                [0, 0, 0, 0])
+                                [0, 0, 0, 0]])
         reshape_radians = np.reshape(total_delta_radians, (4, 1))
 
         Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
