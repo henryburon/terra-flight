@@ -154,7 +154,7 @@ class Odometry(Node):
         
         # check that at least 3 of the 4 values in delta rotation are above 0.5
 
-        threshold = 0.2
+        threshold = 0.55
 
         if np.count_nonzero(delta_rotations > threshold) >= 3:
             check1 = True
