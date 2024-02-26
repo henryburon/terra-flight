@@ -23,8 +23,18 @@ class Odometry(Node):
 
         # Set up GPIOs
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.a_front_right, GPIO.IN)
-        GPIO.setup(self.b_front_right, GPIO.IN)
+        GPIO.setup(self.a_front_left_pin, GPIO.IN)
+        GPIO.setup(self.b_front_left_pin, GPIO.IN)
+
+        GPIO.setup(self.a_front_right_pin, GPIO.IN)
+        GPIO.setup(self.b_front_right_pin, GPIO.IN)
+
+        GPIO.setup(self.a_back_right_pin, GPIO.IN)
+        GPIO.setup(self.b_back_right_pin, GPIO.IN)
+        
+        GPIO.setup(self.a_back_left_pin, GPIO.IN)
+        GPIO.setup(self.b_back_left_pin, GPIO.IN)
+
 
         self.front_left_state = None
         self.front_left_counter = -1
