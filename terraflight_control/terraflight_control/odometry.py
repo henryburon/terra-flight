@@ -192,9 +192,11 @@ class Odometry(Node):
 
         # self.get_logger().info(f"Delta rotations: {delta_rotations}")
 
-        threshold = 0.0
-        if np.count_nonzero(delta_rotations > threshold) >= 4:
-            check1 = True
+        # threshold = 0.0
+        # if np.count_nonzero(delta_rotations > threshold) >= 4:
+        #     check1 = True
+
+        check1 = True
 
         if check1:
             # multiply the first item in delta rotations by 7, the rest by 4
@@ -206,6 +208,7 @@ class Odometry(Node):
             self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
+        self.get_logger().info(f"Total delta rotations: {self.total_delta_rotations}")
 
 
     def update_robot_config(self):
