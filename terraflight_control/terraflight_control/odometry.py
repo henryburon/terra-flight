@@ -2,15 +2,22 @@ import rclpy
 from rclpy.node import Node
 import RPi.GPIO as GPIO
 import numpy as np
+from tf2_ros import TransformBroadcaster
+from geometry_msgs.msg import TransformStamped
+import math
+
 
 class Odometry(Node):
     def __init__(self):
         super().__init__("odometry")
 
-        # High-frequency timer to monitor pulses and calculate rotations
+        # Timer
         self.wheels_timer = self.create_timer(0.001, self.wheels_timer_callback)  # 1000 Hz
+        self.validity_timer = self.create_timer(1, self.validity_timer_callback)  # 1 Hz
+        self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
 
-        self.one_sec_timer = self.create_timer(1, self.one_sec_timer_callback)  # 1 Hz
+        # Transform broadcaster
+        self.tf_broadcaster = TransformBroadcaster(self)
 
         self.a_front_left_pin = 2 # blue
         self.b_front_left_pin = 3 # white
@@ -23,6 +30,9 @@ class Odometry(Node):
 
         self.a_back_right_pin = 27 # blue
         self.b_back_right_pin = 22 # white
+
+        # confirmed, the a pins are correct
+        # b pins TBD
 
         # Set up GPIOs
         GPIO.setmode(GPIO.BCM)
@@ -38,7 +48,6 @@ class Odometry(Node):
         GPIO.setup(self.a_back_left_pin, GPIO.IN)
         GPIO.setup(self.b_back_left_pin, GPIO.IN)
 
-
         self.front_left_state = None
         self.front_left_counter = -1
 
@@ -52,13 +61,16 @@ class Odometry(Node):
         self.back_right_counter = -1
 
         # front left, front right, back left, back right
-        self.rotations = [0, 0, 0, 0]
-
+        self.rotation_measurements = [0, 0, 0, 0]
+        self.actual_rotations = np.array([0, 0, 0, 0])
         self.old_rotations = [0, 0, 0, 0]
 
-    def wheels_timer_callback(self):
+    def timer_callback(self):
+        # Main timer callback. Updates the robot configuration.
+        self.update_robot_config()
 
-        # Count (a) pulses for each wheel
+    # High-frequency timer to monitor pulses and blindly calculate rotations
+    def wheels_timer_callback(self):
 
         # Front left wheel
         front_left_state = GPIO.input(self.a_front_left_pin) # check status of pin a
@@ -85,21 +97,101 @@ class Odometry(Node):
         self.back_right_state = back_right_state
 
         # Convert to rotations
-        self.rotations[0] = self.front_left_counter / 376.6
-        self.rotations[1] = self.front_right_counter / 376.6
-        self.rotations[2] = self.back_left_counter / 376.6
-        self.rotations[3] = self.back_right_counter / 376.6
+        self.rotation_measurements[0] = self.front_left_counter / 376.6 # 376.6 pulses per rotation, via data sheet
+        self.rotation_measurements[1] = self.front_right_counter / 376.6
+        self.rotation_measurements[2] = self.back_left_counter / 376.6
+        self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-        # Log total rotations
-        # self.get_logger().info(f"Rotations: {self.rotations}")
+        # Right now, this only accounts for forward motion. Will need to account for backward motion as well.
 
-    def one_sec_timer_callback(self):
-        # log rotations per second
+        self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
 
-        rotations_per_second = np.array(self.rotations) - np.array(self.old_rotations)
-        self.get_logger().info(f"Rotations per second: {rotations_per_second}")
 
-        self.old_rotations = self.rotations.copy()
+
+    def validity_timer_callback(self): # 10 Hz
+        check1 = False
+        # Performs a few checks to verify validity of the rotation measurements
+        # Decides whether or not to add the measurements to the actual list of rotations
+        # delta rotations is the change in rotations from the last time step (0.1s)
+        delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
+
+        self.get_logger().info(f"Delta rotations: {delta_rotations}")
+
+
+        self.old_rotations = self.rotation_measurements.copy()
+
+        # Check if the rotations are valid
+        # The encoders give false values when the robot is not moving (i.e. display rotation when there is none)
+        # The first check will be to ensure that at least 3 of the wheels have values above a specified threshold
+        
+        # check that at least 3 of the 4 values in delta rotation are above 0.5
+
+        threshold = 0.5
+
+        if np.count_nonzero(delta_rotations > threshold) >= 3:
+            check1 = True
+
+        if check1:
+            self.actual_rotations += delta_rotations
+
+        self.get_logger().info(f"Actual rotations: {self.actual_rotations}")
+
+
+
+
+        # only read when im sending commands
+        # and maybe disregard values under 0.5
+        # also disregard if only one wheel is moving, since at least two wheels should be moving at the same time (maybe all 4 should be...)
+        # the wheels can get stuck in a position where it indicates its moving but it really isnt
+
+
+
+
+
+
+
+    def update_robot_config(self):
+        # update robot configuration
+        t = TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = "world"
+        t.child_frame_id = "base_footprint"
+        t.transform.translation.x = 0.0
+        t.transform.translation.y = 0.0
+        t.transform.translation.z = 0.0
+
+        q = self.quaternion_from_euler(0, 0, 45) # put theta at ak
+        t.transform.rotation.x = q[0]
+        t.transform.rotation.y = q[1]
+        t.transform.rotation.z = q[2]
+        t.transform.rotation.w = q[3]
+
+        self.tf_broadcaster.sendTransform(t)
+
+    def quaternion_from_euler(ai, aj, ak):
+        ai /= 2.0
+        aj /= 2.0
+        ak /= 2.0
+        ci = math.cos(ai)
+        si = math.sin(ai)
+        cj = math.cos(aj)
+        sj = math.sin(aj)
+        ck = math.cos(ak)
+        sk = math.sin(ak)
+        cc = ci*ck
+        cs = ci*sk
+        sc = si*ck
+        ss = si*sk
+
+        q = np.empty((4, ))
+        q[0] = cj*sc - sj*cs
+        q[1] = cj*ss + sj*cc
+        q[2] = cj*cs - sj*sc
+        q[3] = cj*cc + sj*ss
+
+        return q
+
+
 
 
 
