@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 import RPi.GPIO as GPIO
+import numpy as np
 
 class Odometry(Node):
     def __init__(self):
@@ -8,6 +9,8 @@ class Odometry(Node):
 
         # High-frequency timer to monitor pulses and calculate rotations
         self.wheels_timer = self.create_timer(0.001, self.wheels_timer_callback)  # 1000 Hz
+
+        self.one_sec_timer = self.create_timer(1, self.one_sec_timer_callback)  # 1 Hz
 
         self.a_front_left_pin = 2 # blue
         self.b_front_left_pin = 3 # white
@@ -31,7 +34,7 @@ class Odometry(Node):
 
         GPIO.setup(self.a_back_right_pin, GPIO.IN)
         GPIO.setup(self.b_back_right_pin, GPIO.IN)
-        
+
         GPIO.setup(self.a_back_left_pin, GPIO.IN)
         GPIO.setup(self.b_back_left_pin, GPIO.IN)
 
@@ -50,6 +53,8 @@ class Odometry(Node):
 
         # front left, front right, back left, back right
         self.rotations = [0, 0, 0, 0]
+
+        self.old_rotations = [0, 0, 0, 0]
 
     def wheels_timer_callback(self):
 
@@ -87,6 +92,15 @@ class Odometry(Node):
 
         # Log total rotations
         self.get_logger().info(f"Rotations: {self.rotations}")
+
+    def one_sec_timer_callback(self):
+        # log rotations per second
+
+        rotations_per_second = np.array(self.rotations) - np.array(self.old_rotations)
+        self.get_logger().info(f"Rotations per second: {rotations_per_second}")
+
+        self.old_rotations = self.rotations
+
 
 
 def odometry_entry(args=None):

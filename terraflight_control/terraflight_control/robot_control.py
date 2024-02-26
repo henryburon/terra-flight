@@ -43,7 +43,7 @@ class Robot_Control(Node):
         self.pwm_back_left = GPIO.PWM(self.back_left, frequency)
         self.pwm_back_right = GPIO.PWM(self.back_right, frequency)
 
-        duty_cycle = (1500/20000) * 100
+        duty_cycle = (1400/20000) * 100
 
         self.pwm_front_left.start(duty_cycle)
         self.pwm_front_right.start(duty_cycle)
@@ -60,7 +60,7 @@ class Robot_Control(Node):
 
     def command_wheels(self):
         if self.robot_motion == "stop":
-            duty_cycle = (1500/20000) * 100
+            duty_cycle = (1400/20000) * 100
 
             self.pwm_front_left.start(duty_cycle)
             self.pwm_front_right.start(duty_cycle)
@@ -68,8 +68,8 @@ class Robot_Control(Node):
             self.pwm_back_right.start(duty_cycle)
 
         elif self.robot_motion == "forward":
-            right_duty_cycle = (1200/20000) * 100 # changed from 1200 to 1300
-            left_duty_cycle = (1550/20000) * 100
+            right_duty_cycle = (1375/20000) * 100
+            left_duty_cycle = (1375/20000) * 100
 
             self.pwm_front_left.start(left_duty_cycle)
             self.pwm_front_right.start(right_duty_cycle)
@@ -77,8 +77,8 @@ class Robot_Control(Node):
             self.pwm_back_right.start(right_duty_cycle)
 
         elif self.robot_motion == "backward":
-            right_duty_cycle = (1550/20000) * 100
-            left_duty_cycle = (1200/20000) * 100
+            right_duty_cycle = (1350/20000) * 100
+            left_duty_cycle = (1350/20000) * 100
 
             self.pwm_front_left.start(left_duty_cycle)
             self.pwm_front_right.start(right_duty_cycle)
@@ -86,7 +86,7 @@ class Robot_Control(Node):
             self.pwm_back_right.start(right_duty_cycle)
 
         elif self.robot_motion == "right":
-            duty_cycle = (1550/20000) * 100
+            duty_cycle = (1385/20000) * 100
 
             self.pwm_front_left.start(duty_cycle)
             self.pwm_front_right.start(duty_cycle)
@@ -94,7 +94,7 @@ class Robot_Control(Node):
             self.pwm_back_right.start(duty_cycle)
 
         elif self.robot_motion == "left":
-            duty_cycle = (1200/20000) * 100
+            duty_cycle = (1325/20000) * 100
 
             self.pwm_front_left.start(duty_cycle)
             self.pwm_front_right.start(duty_cycle)
