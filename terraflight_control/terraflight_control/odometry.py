@@ -5,6 +5,7 @@ import numpy as np
 from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
 import math
+import modern_robotics as mr
 
 def quaternion_from_euler(ai, aj, ak):
         ai /= 2.0
@@ -170,28 +171,32 @@ class Odometry(Node):
         H_pseudo_inv = np.array([[-1/D, 1/D, 1/D, -1/D],
                                 [1, 1, 1, 1],
                                 [0, 0, 0, 0]])
-        reshape_radians = np.reshape(total_delta_radians, (4, 1))
 
         reshape_radians = np.array([[total_delta_radians[0]],
                                      [total_delta_radians[1]],
-                                     [total_delta_radians[3]],
+                                     [total_delta_radians[3]], # due to the H_pseudo_inv matrix
                                      [total_delta_radians[2]]])
 
         Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
 
-        self.get_logger().info(f"Vb: {Vb}")
+        # self.get_logger().info(f"Vb: {Vb}")
 
+        # reformat Vb to 6x1
+        Vb6 = np.array(0, 0, Vb[0], Vb[1], Vb[2], 0)
 
+        twist_se3 = mr.VecTose3(Vb6)
 
+        integrated_pose = mr.MatrixExp6(twist_se3)
 
+        self.get_logger().info(f"Integrated pose: {integrated_pose}")
 
+        position = integrated_pose[0:3, 3]
+    
 
-
-
-
-
-
-
+    
+        self.robot_config["x"] = position[0]
+        self.robot_config["y"] = position[1]
+    
         # update robot configuration
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
@@ -199,7 +204,7 @@ class Odometry(Node):
         t.child_frame_id = "base_footprint"
         t.transform.translation.x = self.robot_config["x"]
         t.transform.translation.y = self.robot_config["y"]
-        t.transform.translation.z = self.robot_config["z"]
+        t.transform.translation.z = 0.0
 
         q = quaternion_from_euler(0, 0, self.robot_config["theta"]) # in radians
         t.transform.rotation.x = q[0]
