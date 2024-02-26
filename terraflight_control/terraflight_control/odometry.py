@@ -160,6 +160,7 @@ class Odometry(Node):
 
     def back_left_callback(self, channel):
         self.back_left_counter += 1
+        self.get_logger().info(f"Back left counter: {self.back_left_counter}")
         self.rotation_measurements[2] = self.back_left_counter / 753.2 / 4
 
     def back_right_callback(self, channel):
@@ -180,7 +181,7 @@ class Odometry(Node):
 
             self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
-            self.get_logger().info(f"Net rotations: {self.net_rotation}")
+            # self.get_logger().info(f"Net rotations: {self.net_rotation}")
 
             self.old_rotations = self.rotation_measurements.copy()
 
