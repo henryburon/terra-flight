@@ -60,7 +60,7 @@ class Robot_Control(Node):
 
     def command_wheels(self):
         if self.robot_motion == "stop":
-            duty_cycle = (1390/20000) * 100
+            duty_cycle = (1392/20000) * 100
 
             self.pwm_front_left.start(duty_cycle)
             self.pwm_front_right.start(duty_cycle)

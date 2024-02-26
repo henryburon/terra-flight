@@ -99,7 +99,7 @@ class Odometry(Node):
         rotations_per_second = np.array(self.rotations) - np.array(self.old_rotations)
         self.get_logger().info(f"Rotations per second: {rotations_per_second}")
 
-        self.old_rotations = self.rotations
+        self.old_rotations = self.rotations.copy()
 
 
 
