@@ -36,7 +36,7 @@ class Odometry(Node):
 
         # Timer
         self.wheels_timer = self.create_timer(0.001, self.wheels_timer_callback)  # 1000 Hz
-        self.validity_timer = self.create_timer(1, self.validity_timer_callback)  # 1 Hz
+        self.validity_timer = self.create_timer(0.1, self.validity_timer_callback)  # 1 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
 
         # Robot config
@@ -79,7 +79,7 @@ class Odometry(Node):
         GPIO.setup(self.a_back_left_pin, GPIO.IN)
         GPIO.setup(self.b_back_left_pin, GPIO.IN)
 
-        self.front_left_state = None
+        self.front_left_state = [0, 0]
         self.front_left_counter = -1
 
         self.front_right_state = None
@@ -95,6 +95,7 @@ class Odometry(Node):
         self.rotation_measurements = [0, 0, 0, 0]
         self.total_delta_rotations = np.array([0, 0, 0, 0])
         self.old_rotations = [0, 0, 0, 0]
+        self.pin_times = [[0,0], [0,0], [0,0], [0,0]] #front left [a,b], etc.
 
         self.log_counter = 0
 
@@ -106,10 +107,21 @@ class Odometry(Node):
     def wheels_timer_callback(self):
 
         # Front left wheel
-        front_left_state = GPIO.input(self.a_front_left_pin) # check status of pin a
-        if front_left_state != self.front_left_state:
+        front_left_state_a = GPIO.input(self.a_front_left_pin) # check status of pin a
+        front_left_state_b = GPIO.input(self.b_front_left_pin) # check status of pin b
+
+        if front_left_state_a != self.front_left_state[0]:
+            self.pin_times[0][0] = self.get_clock().now().nanoseconds
             self.front_left_counter += 1
-        self.front_left_state = front_left_state
+        self.front_left_state = front_left_state_a
+
+        if front_left_state_b != self.front_left_state[1]:
+            self.pin_times[0][1] = self.get_clock().now().nanoseconds
+
+        time_between_pins = self.pin_times[0][0] - self.pin_times[0][1]
+
+        self.get_logger().info(f"Time between pins: {time_between_pins}") # should get longer in one direction, shorter in another
+
 
         # Front right wheel
         front_right_state = GPIO.input(self.a_front_right_pin)
@@ -139,7 +151,6 @@ class Odometry(Node):
 
         self.log_counter += 1
         if self.log_counter >= 100:
-            # self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
             self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
@@ -150,14 +161,19 @@ class Odometry(Node):
         delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
         self.old_rotations = self.rotation_measurements.copy()
 
-        threshold = 0.55
-        if np.count_nonzero(delta_rotations > threshold) >= 3:
+        threshold = .055
+        if np.count_nonzero(delta_rotations > threshold) >= 4:
             check1 = True
 
         if check1:
             self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
+            
+    def check_spin_direction(self):
+        
+        # when we get status of pin a, check the time
+        pass
 
 
     def update_robot_config(self):
@@ -188,7 +204,7 @@ class Odometry(Node):
 
         integrated_pose = mr.MatrixExp6(twist_se3)
 
-        self.get_logger().info(f"Integrated pose: {integrated_pose}")
+        # self.get_logger().info(f"Integrated pose: {integrated_pose}")
 
         position = integrated_pose[0:3, 3]
     
