@@ -57,7 +57,7 @@ class Odometry(Node):
             "theta": 0.0
         }
 
-        
+        self.robot_motion = "stop"
 
         # Transform broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
