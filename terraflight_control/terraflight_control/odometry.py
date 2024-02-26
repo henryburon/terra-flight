@@ -169,20 +169,20 @@ class Odometry(Node):
     def update_rotations_callback(self): # 100 Hz
 
         # Sensor readings only valid if robot should be moving
-        if self.robot_motion != "stop":
+        # if self.robot_motion != "stop":
 
-            delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
+        delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
 
-            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
-            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
-            delta_rotations[2] = delta_rotations[2] * self.back_left_direction
-            delta_rotations[3] = delta_rotations[3] * self.back_right_direction
+        delta_rotations[0] = delta_rotations[0] * self.front_left_direction
+        delta_rotations[1] = delta_rotations[1] * self.front_right_direction
+        delta_rotations[2] = delta_rotations[2] * self.back_left_direction
+        delta_rotations[3] = delta_rotations[3] * self.back_right_direction
 
-            self.net_rotation = np.float64(self.net_rotation) + delta_rotations
+        self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
-            self.get_logger().info(f"Net rotation: {self.net_rotation}")
+        self.get_logger().info(f"Net rotation: {self.net_rotation}")
 
-            self.old_rotations = self.rotation_measurements.copy()
+        self.old_rotations = self.rotation_measurements.copy()
 
 
 
@@ -248,6 +248,7 @@ def odometry_entry(args=None):
     rclpy.init(args=args)
     node = Odometry()
     rclpy.spin(node)
+    GPIO.cleanup()
     rclpy.shutdown()
 
 if __name__ == "__main__":
