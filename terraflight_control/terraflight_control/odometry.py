@@ -79,7 +79,7 @@ class Odometry(Node):
         GPIO.setup(self.a_back_left_pin, GPIO.IN)
         GPIO.setup(self.b_back_left_pin, GPIO.IN)
 
-        self.front_left_state = [0, 0]
+        self.front_left_state = None
         self.front_left_counter = -1
 
         self.front_right_state = None
@@ -95,7 +95,6 @@ class Odometry(Node):
         self.rotation_measurements = [0, 0, 0, 0]
         self.total_delta_rotations = np.array([0, 0, 0, 0])
         self.old_rotations = [0, 0, 0, 0]
-        self.pin_times = [[0,0], [0,0], [0,0], [0,0]] #front left [a,b], etc.
 
         self.log_counter = 0
 
@@ -107,22 +106,10 @@ class Odometry(Node):
     def wheels_timer_callback(self):
 
         # Front left wheel
-        front_left_state_a = GPIO.input(self.a_front_left_pin) # check status of pin a
-        front_left_state_b = GPIO.input(self.b_front_left_pin) # check status of pin b
-
-        if front_left_state_a != self.front_left_state[0]:
-            self.pin_times[0][0] = self.get_clock().now().nanoseconds
+        front_left_state = GPIO.input(self.a_front_left_pin) # check status of pin a
+        if front_left_state != self.front_left_state:
             self.front_left_counter += 1
-        self.front_left_state[0] = front_left_state_a
-
-        if front_left_state_b != self.front_left_state[1]:
-            self.pin_times[0][1] = self.get_clock().now().nanoseconds
-        self.front_left_state[1] = front_left_state_b
-
-        time_between_pins = self.pin_times[0][0] - self.pin_times[0][1]
-
-        self.get_logger().info(f"Time between pins: {time_between_pins}") # should get longer in one direction, shorter in another
-
+        self.front_left_state = front_left_state
 
         # Front right wheel
         front_right_state = GPIO.input(self.a_front_right_pin)
@@ -152,6 +139,7 @@ class Odometry(Node):
 
         self.log_counter += 1
         if self.log_counter >= 100:
+            # self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
             self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
@@ -205,7 +193,7 @@ class Odometry(Node):
 
         integrated_pose = mr.MatrixExp6(twist_se3)
 
-        # self.get_logger().info(f"Integrated pose: {integrated_pose}")
+        self.get_logger().info(f"Integrated pose: {integrated_pose}")
 
         position = integrated_pose[0:3, 3]
     
