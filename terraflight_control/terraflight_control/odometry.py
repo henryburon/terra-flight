@@ -138,7 +138,7 @@ class Odometry(Node):
 
         self.log_counter += 1
         if self.log_counter >= 100:
-            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+            # self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
             self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
@@ -171,6 +171,11 @@ class Odometry(Node):
                                 [1, 1, 1, 1],
                                 [0, 0, 0, 0]])
         reshape_radians = np.reshape(total_delta_radians, (4, 1))
+
+        reshape_radians = np.array([[total_delta_radians[0]],
+                                     [total_delta_radians[1]],
+                                     [total_delta_radians[3]],
+                                     [total_delta_radians[2]]])
 
         Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
 
