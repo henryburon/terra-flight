@@ -43,7 +43,7 @@ class Robot_Control(Node):
         self.pwm_back_left = GPIO.PWM(self.back_left, frequency)
         self.pwm_back_right = GPIO.PWM(self.back_right, frequency)
 
-        duty_cycle = (1375/20000) * 100
+        duty_cycle = (1500/20000) * 100
 
         self.pwm_front_left.start(duty_cycle)
         self.pwm_front_right.start(duty_cycle)
@@ -60,7 +60,7 @@ class Robot_Control(Node):
 
     def command_wheels(self):
         if self.robot_motion == "stop":
-            duty_cycle = (1420/20000) * 100
+            duty_cycle = (1500/20000) * 100
 
             self.pwm_front_left.start(duty_cycle)
             self.pwm_front_right.start(duty_cycle)
