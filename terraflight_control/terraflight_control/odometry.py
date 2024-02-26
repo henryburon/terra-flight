@@ -183,7 +183,9 @@ class Odometry(Node):
         delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
         self.old_rotations = self.rotation_measurements.copy()
 
-        threshold = .055
+        self.get_logger().info(f"Delta rotations: {delta_rotations}")
+
+        threshold = 0.0
         if np.count_nonzero(delta_rotations > threshold) >= 4:
             check1 = True
 
