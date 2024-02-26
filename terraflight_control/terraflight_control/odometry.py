@@ -145,61 +145,61 @@ class Odometry(Node):
 
     # High-frequency timer to monitor pulses and blindly calculate rotations
     def wheels_timer_callback(self):
+        if self.robot_motion != "stop":
+            # Front left wheel
+            front_left_state = GPIO.input(self.a_front_left_pin) # check status of pin a
+            if front_left_state != self.front_left_state:
+                self.front_left_counter += 1
+            self.front_left_state = front_left_state
 
-        # Front left wheel
-        front_left_state = GPIO.input(self.a_front_left_pin) # check status of pin a
-        if front_left_state != self.front_left_state:
-            self.front_left_counter += 1
-        self.front_left_state = front_left_state
+            # Front right wheel
+            front_right_state = GPIO.input(self.a_front_right_pin)
+            if front_right_state != self.front_right_state:
+                self.front_right_counter += 1
+            self.front_right_state = front_right_state
 
-        # Front right wheel
-        front_right_state = GPIO.input(self.a_front_right_pin)
-        if front_right_state != self.front_right_state:
-            self.front_right_counter += 1
-        self.front_right_state = front_right_state
+            # Back left wheel
+            back_left_state = GPIO.input(self.a_back_left_pin)
+            if back_left_state != self.back_left_state:
+                self.back_left_counter += 1
+            self.back_left_state = back_left_state
 
-        # Back left wheel
-        back_left_state = GPIO.input(self.a_back_left_pin)
-        if back_left_state != self.back_left_state:
-            self.back_left_counter += 1
-        self.back_left_state = back_left_state
+            # Back right wheel
+            back_right_state = GPIO.input(self.a_back_right_pin)
+            if back_right_state != self.back_right_state:
+                self.back_right_counter += 1
+            self.back_right_state = back_right_state
 
-        # Back right wheel
-        back_right_state = GPIO.input(self.a_back_right_pin)
-        if back_right_state != self.back_right_state:
-            self.back_right_counter += 1
-        self.back_right_state = back_right_state
+            # Convert to rotations
+            # self.rotation_measurements is the total rotations of the wheels, not accounting
+            # for the direction of the rotation
+            self.rotation_measurements[0] = self.front_left_counter / 376.6 # 376.6 pulses per rotation, via data sheet
+            self.rotation_measurements[1] = self.front_right_counter / 376.6
+            self.rotation_measurements[2] = self.back_left_counter / 376.6
+            self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-        # Convert to rotations
-        # self.rotation_measurements is the total rotations of the wheels, not accounting
-        # for the direction of the rotation
-        self.rotation_measurements[0] = self.front_left_counter / 376.6 # 376.6 pulses per rotation, via data sheet
-        self.rotation_measurements[1] = self.front_right_counter / 376.6
-        self.rotation_measurements[2] = self.back_left_counter / 376.6
-        self.rotation_measurements[3] = self.back_right_counter / 376.6
-
-        # self.log_counter += 1
-        # if self.log_counter >= 100:
-        #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
-        #     self.log_counter = 0  # Reset the counter
+            # self.log_counter += 1
+            # if self.log_counter >= 100:
+            #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+            #     self.log_counter = 0  # Reset the counter
 
     def update_rotations_callback(self): # 100 Hz
 
         # Sensor readings only valid if robot should be moving
-        if self.robot_motion != "stop":
+        # if self.robot_motion != "stop":
 
-            delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
+        delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
 
-            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
-            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
-            delta_rotations[2] = delta_rotations[2] * self.back_left_direction
-            delta_rotations[3] = delta_rotations[3] * self.back_right_direction
+        delta_rotations[0] = delta_rotations[0] * self.front_left_direction
+        delta_rotations[1] = delta_rotations[1] * self.front_right_direction
+        delta_rotations[2] = delta_rotations[2] * self.back_left_direction
+        delta_rotations[3] = delta_rotations[3] * self.back_right_direction
 
-            self.net_rotation = np.float64(self.net_rotation) + delta_rotations
+        self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
-            self.get_logger().info(f"Net rotation: {self.net_rotation}")
+        self.get_logger().info(f"Net rotation: {self.net_rotation}")
 
-            self.old_rotations = self.rotation_measurements.copy()
+        self.old_rotations = self.rotation_measurements.copy()
 
 
 
