@@ -107,10 +107,10 @@ class Odometry(Node):
 
         self.log_counter = 0
 
-        self.front_left_direction = 1
-        self.front_right_direction = 1
-        self.back_left_direction = 1
-        self.back_right_direction = 1
+        self.front_left_direction = 0
+        self.front_right_direction = 0
+        self.back_left_direction = 0
+        self.back_right_direction = 0
 
     def timer_callback(self):
         # Main timer callback. Updates the robot configuration.
@@ -139,6 +139,11 @@ class Odometry(Node):
             self.front_right_direction = -1
             self.back_left_direction = 1
             self.back_right_direction = -1
+        elif self.robot_motion == "stop":
+            self.front_left_direction = 0
+            self.front_right_direction = 0
+            self.back_left_direction = 0
+            self.back_right_direction = 0
 
     # High-frequency timer to monitor pulses and blindly calculate rotations
     def wheels_timer_callback(self):
@@ -168,47 +173,45 @@ class Odometry(Node):
         self.back_right_state = back_right_state
 
         # Convert to rotations
+        # self.rotation_measurements is the total rotations of the wheels, not accounting
+        # for the direction of the rotation
         self.rotation_measurements[0] = self.front_left_counter / 376.6 # 376.6 pulses per rotation, via data sheet
         self.rotation_measurements[1] = self.front_right_counter / 376.6
         self.rotation_measurements[2] = self.back_left_counter / 376.6
         self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-
-
-
-
-        self.log_counter += 1
-        if self.log_counter >= 100:
-            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
-            self.log_counter = 0  # Reset the counter
+        # self.log_counter += 1
+        # if self.log_counter >= 100:
+        #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+        #     self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
-        check1 = False
-        # Performs a few checks to verify validity of the rotation measurements
-        # Decides whether or not to add the measurements to the actual list of rotations
-        # delta rotations is the change in rotations from the last time step (0.1s)
+        # check1 = False
+    
         delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
         self.old_rotations = self.rotation_measurements.copy()
 
-        # self.get_logger().info(f"Delta rotations: {delta_rotations}")
+        self.get_logger().info(f"Delta rotations: {delta_rotations}")
 
         # threshold = 0.0
         # if np.count_nonzero(delta_rotations > threshold) >= 4:
         #     check1 = True
 
-        check1 = True
+        # if self.robot_motion != "stop":
+        #     check1 = True
 
-        if check1:
+        # if check1:
             # multiply the first item in delta rotations by 7, the rest by 4
-            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
-            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
-            delta_rotations[2] = delta_rotations[2] * self.back_right_direction
-            delta_rotations[3] = delta_rotations[3] * self.back_left_direction
+        
+        delta_rotations[0] = delta_rotations[0] * self.front_left_direction
+        delta_rotations[1] = delta_rotations[1] * self.front_right_direction
+        delta_rotations[2] = delta_rotations[2] * self.back_left_direction
+        delta_rotations[3] = delta_rotations[3] * self.back_right_direction
 
-            self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
+        self.total_delta_rotations = np.float64(self.total_delta_rotations) + delta_rotations
 
         # Should add a check so it only accepts values when I am sending commands
-        self.get_logger().info(f"Total delta rotations: {self.total_delta_rotations}")
+        # self.get_logger().info(f"Total delta rotations: {self.total_delta_rotations}")
 
 
     def update_robot_config(self):
@@ -216,7 +219,6 @@ class Odometry(Node):
         total_delta_radians = self.total_delta_rotations * 2.0 * np.pi
         r = 0.08575 # may need to decrease due to poor inflation
         D = 0.231775 # half the distance between left and right wheels
-        l = 0.2436 # half the distance between front and back wheels
         
         # Find twist Vb
         H_pseudo_inv = np.array([[-1/D, 1/D, 1/D, -1/D],
@@ -225,7 +227,7 @@ class Odometry(Node):
 
         reshape_radians = np.array([[total_delta_radians[0]],
                                      [total_delta_radians[1]],
-                                     [total_delta_radians[3]], # due to the H_pseudo_inv matrix
+                                     [total_delta_radians[3]], # due to the H_pseudo_inv matrix setup
                                      [total_delta_radians[2]]])
 
         Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
