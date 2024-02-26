@@ -113,10 +113,11 @@ class Odometry(Node):
         if front_left_state_a != self.front_left_state[0]:
             self.pin_times[0][0] = self.get_clock().now().nanoseconds
             self.front_left_counter += 1
-        self.front_left_state = front_left_state_a
+        self.front_left_state[0] = front_left_state_a
 
         if front_left_state_b != self.front_left_state[1]:
             self.pin_times[0][1] = self.get_clock().now().nanoseconds
+        self.front_left_state[1] = front_left_state_b
 
         time_between_pins = self.pin_times[0][0] - self.pin_times[0][1]
 
