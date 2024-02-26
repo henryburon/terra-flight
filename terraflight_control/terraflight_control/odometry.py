@@ -7,6 +7,7 @@ from geometry_msgs.msg import TransformStamped
 import math
 from std_msgs.msg import String
 import modern_robotics as mr
+from scipy.spatial.transform import Rotation
 
 
 def quaternion_from_euler(ai, aj, ak):
@@ -38,7 +39,7 @@ class Odometry(Node):
 
         # Timer
         self.wheels_timer = self.create_timer(0.001, self.wheels_timer_callback)  # 1000 Hz
-        self.validity_timer = self.create_timer(0.1, self.validity_timer_callback)  # 10 Hz
+        self.update_rotations_timer = self.create_timer(0.1, self.update_rotations_callback)  # 10 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
 
         # Subscribers
@@ -55,6 +56,8 @@ class Odometry(Node):
             "z": 0.0,
             "theta": 0.0
         }
+
+        
 
         # Transform broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
@@ -185,38 +188,24 @@ class Odometry(Node):
         #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
         #     self.log_counter = 0  # Reset the counter
 
-    def validity_timer_callback(self): # 10 Hz
+    def update_rotations_callback(self): # 10 Hz
 
-        self.get_logger().info(f"State {self.robot_motion}")
+        # Sensor readings only valid if robot should be moving
+        if self.robot_motion != "stop":
 
+            delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
 
+            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
+            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
+            delta_rotations[2] = delta_rotations[2] * self.back_left_direction
+            delta_rotations[3] = delta_rotations[3] * self.back_right_direction
 
-        # check1 = False
-    
-        delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
-        self.old_rotations = self.rotation_measurements.copy()
+            self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
-        # self.get_logger().info(f"Delta rotations: {delta_rotations}")
+            self.get_logger().info(f"Net rotation: {self.net_rotation}")
 
-        # threshold = 0.0
-        # if np.count_nonzero(delta_rotations > threshold) >= 4:
-        #     check1 = True
+            self.old_rotations = self.rotation_measurements.copy()
 
-        # if self.robot_motion != "stop":
-        #     check1 = True
-
-        # if check1:
-            # multiply the first item in delta rotations by 7, the rest by 4
-        
-        delta_rotations[0] = delta_rotations[0] * self.front_left_direction
-        delta_rotations[1] = delta_rotations[1] * self.front_right_direction
-        delta_rotations[2] = delta_rotations[2] * self.back_left_direction
-        delta_rotations[3] = delta_rotations[3] * self.back_right_direction
-
-        self.net_rotation = np.float64(self.net_rotation) + delta_rotations
-
-        # Should add a check so it only accepts values when I am sending commands
-        # self.get_logger().info(f"Net rotations for each wheel: {self.net_rotation}")
 
 
     def update_robot_config(self):
@@ -265,7 +254,10 @@ class Odometry(Node):
         t.transform.translation.y = self.robot_config["y"]
         t.transform.translation.z = 0.0
 
-        q = quaternion_from_euler(0, 0, self.robot_config["theta"]) # in radians
+        # q = quaternion_from_euler(0, 0, self.robot_config["theta"]) # in radians
+
+        q = Rotation.from_euler('xyz', [0, 0, self.robot_config["theta"]]).as_quat()
+
         t.transform.rotation.x = q[0]
         t.transform.rotation.y = q[1]
         t.transform.rotation.z = q[2]
