@@ -91,7 +91,7 @@ class Odometry(Node):
         self.rotations[3] = self.back_right_counter / 376.6
 
         # Log total rotations
-        self.get_logger().info(f"Rotations: {self.rotations}")
+        # self.get_logger().info(f"Rotations: {self.rotations}")
 
     def one_sec_timer_callback(self):
         # log rotations per second

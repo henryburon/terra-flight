@@ -94,12 +94,10 @@ class Robot_Control(Node):
             self.pwm_back_right.start(duty_cycle)
 
         elif self.robot_motion == "left":
-            duty_cycle = (1325/20000) * 100
-
-            self.pwm_front_left.start(duty_cycle)
-            self.pwm_front_right.start(duty_cycle)
-            self.pwm_back_left.start(duty_cycle)
-            self.pwm_back_right.start(duty_cycle)
+            self.pwm_front_left.stop()
+            self.pwm_front_right.stop()
+            self.pwm_back_left.stop()
+            self.pwm_back_right.stop()
 
         # self.get_logger().info(f'Now moving: {self.robot_motion}')
 
