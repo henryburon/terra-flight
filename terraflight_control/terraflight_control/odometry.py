@@ -227,19 +227,25 @@ class Odometry(Node):
 
         integrated_pose = mr.MatrixExp6(twist_se3)
 
-        self.get_logger().info(f"Integrated pose: {integrated_pose}")
+        # self.get_logger().info(f"Integrated pose: {integrated_pose}")
 
         position = integrated_pose[0:3, 3]
         rotation_matrix = integrated_pose[0:3, 0:3]
         # Convert the rotation matrix to Euler angles
         theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
 
-    
+
         self.robot_config["x"] = position[0]
         self.robot_config["y"] = position[1]
         self.robot_config["theta"] = theta
 
-    
+
+
+        self.get_logger().info(f"Total rotations: {self.total_delta_rotations}")
+        self.get_logger().info(f"Robot config: {self.robot_config}")
+
+
+
         # update robot configuration
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
