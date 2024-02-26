@@ -173,11 +173,13 @@ class Odometry(Node):
         self.rotation_measurements[2] = self.back_left_counter / 376.6
         self.rotation_measurements[3] = self.back_right_counter / 376.6
 
-        # Right now, this only accounts for forward motion. Will need to account for backward motion as well.
+
+
+
 
         self.log_counter += 1
         if self.log_counter >= 100:
-            # self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
+            self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
             self.log_counter = 0  # Reset the counter
 
     def validity_timer_callback(self): # 10 Hz
@@ -188,7 +190,7 @@ class Odometry(Node):
         delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
         self.old_rotations = self.rotation_measurements.copy()
 
-        self.get_logger().info(f"Delta rotations: {delta_rotations}")
+        # self.get_logger().info(f"Delta rotations: {delta_rotations}")
 
         threshold = 0.0
         if np.count_nonzero(delta_rotations > threshold) >= 4:
@@ -248,8 +250,8 @@ class Odometry(Node):
 
 
 
-        self.get_logger().info(f"Total rotations: {self.total_delta_rotations}")
-        self.get_logger().info(f"Robot config: {self.robot_config}")
+        # self.get_logger().info(f"Total rotations: {self.total_delta_rotations}")
+        # self.get_logger().info(f"Robot config: {self.robot_config}")
 
 
 
