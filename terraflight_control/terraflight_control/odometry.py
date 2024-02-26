@@ -191,7 +191,7 @@ class Odometry(Node):
         delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
         self.old_rotations = self.rotation_measurements.copy()
 
-        self.get_logger().info(f"Delta rotations: {delta_rotations}")
+        # self.get_logger().info(f"Delta rotations: {delta_rotations}")
 
         # threshold = 0.0
         # if np.count_nonzero(delta_rotations > threshold) >= 4:
@@ -248,6 +248,8 @@ class Odometry(Node):
         # Convert the rotation matrix to Euler angles
         theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
 
+        self.get_logger().info(f"x: {position[0]}, y: {position[1]}, theta: {theta}")
+
 
         self.robot_config["x"] = position[0]
         self.robot_config["y"] = position[1]
@@ -255,8 +257,8 @@ class Odometry(Node):
 
 
 
-        # self.get_logger().info(f"Total rotations: {self.total_delta_rotations}")
-        # self.get_logger().info(f"Robot config: {self.robot_config}")
+        self.get_logger().info(f"Total rotations: {self.total_delta_rotations}")
+        self.get_logger().info(f"Robot config: {self.robot_config}")
 
 
 
