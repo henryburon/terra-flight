@@ -38,8 +38,8 @@ class Odometry(Node):
         super().__init__("odometry")
 
         # Timer
-        self.wheels_timer = self.create_timer(0.001, self.wheels_timer_callback)  # 1000 Hz
-        self.update_rotations_timer = self.create_timer(0.1, self.update_rotations_callback)  # 10 Hz
+        self.wheels_timer = self.create_timer(0.0001, self.wheels_timer_callback)  # 1000 Hz
+        self.update_rotations_timer = self.create_timer(0.001, self.update_rotations_callback)  # 10 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
 
         # Subscribers
@@ -142,11 +142,6 @@ class Odometry(Node):
             self.front_right_direction = -1
             self.back_left_direction = 1
             self.back_right_direction = -1
-        # elif self.robot_motion == "stop":
-        #     self.front_left_direction = 0
-        #     self.front_right_direction = 0
-        #     self.back_left_direction = 0
-        #     self.back_right_direction = 0
 
     # High-frequency timer to monitor pulses and blindly calculate rotations
     def wheels_timer_callback(self):
@@ -188,7 +183,7 @@ class Odometry(Node):
         #     self.get_logger().info(f"Rotation measurements: {self.rotation_measurements}")
         #     self.log_counter = 0  # Reset the counter
 
-    def update_rotations_callback(self): # 10 Hz
+    def update_rotations_callback(self): # 100 Hz
 
         # Sensor readings only valid if robot should be moving
         if self.robot_motion != "stop":

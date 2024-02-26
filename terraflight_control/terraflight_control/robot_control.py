@@ -89,9 +89,9 @@ class Robot_Control(Node):
             duty_cycle = (1550/20000) * 100
 
             self.pwm_front_left.start(duty_cycle)
-            self.pwm_front_right.start(duty_cycle)
+            self.pwm_front_right.start((1392/20000) * 100)
             self.pwm_back_left.start(duty_cycle)
-            self.pwm_back_right.start(duty_cycle)
+            self.pwm_back_right.start((1392/20000) * 100)
 
         elif self.robot_motion == "left":
             duty_cycle = (1200/20000) * 100
