@@ -38,6 +38,9 @@ class Odometry(Node):
     def __init__(self):
         super().__init__("odometry")
 
+        # self.serial_port = "/dev/ttyACMO"
+        # self.ser = serial.Serial(self.serial_port, baudrate=9600)
+
         # Timer
         self.wheels_timer = self.create_timer(0.0001, self.wheels_timer_callback)  # 1000 Hz
         self.update_rotations_timer = self.create_timer(0.001, self.update_rotations_callback)  # 10 Hz
