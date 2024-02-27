@@ -237,7 +237,11 @@ class Odometry(Node):
 
                 # get magnitude and direction
                 mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
-                radians = math.radians(self.theta_test)
+
+                if self.flag == True:
+                    radians = self.theta_test = 0
+                else:
+                    radians = math.radians(self.theta_test)
 
                 # calculate displacement
                 self.x_test = mag * math.cos(radians)
