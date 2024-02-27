@@ -57,6 +57,10 @@ class Odometry(Node):
         self.actual_theta = 0.0
         self.offset_x = 0.0
         self.offset_y = 0.0
+        self.previous_movement = "stop"
+        self.previous_x = 0.0
+        self.previous_y = 0.0
+        self.previous_theta = 0.0
 
         self.serial_port = "/dev/ttyACM0"
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
@@ -231,6 +235,51 @@ class Odometry(Node):
             # get magnitude and direction
             mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
             radians = math.radians(self.theta_test)
+
+            # calculate displacement
+            self.x_test = mag * math.cos(radians)
+            self.y_test = mag * math.sin(radians)
+
+            if self.robot_motion in ["forward", "backward"]:
+
+                if self.previous_movement == "right/left":
+                    # if previous command was spin, check once for current position
+                    try:
+                        robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
+                        self.offset_x = robot_transform.transform.translation.x
+                        self.offset_y = robot_transform.transform.translation.y
+
+                    except TransformException as e:
+                        self.get_logger().error(f"Error: {e}")
+                        return
+                
+                self.x_test += self.offset_x
+                self.y_test += self.offset_y
+
+                self.previous_movement = "forward/backward"
+
+            elif self.robot_motion in ["left", "right"]:
+
+                self.previous_movement = "left/right"
+
+
+
+
+
+
+
+
+
+
+                    
+                
+
+
+
+
+
+
+
             
             # calculate displacement
             if self.robot_motion in ["forward", "backward"]:
