@@ -94,10 +94,10 @@ class Odometry(Node):
         if self.robot_motion != "stop":
             delta_rotations = np.array(self.all_rotations.copy()) - np.array(self.old_rotations)
 
-            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
-            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
-            delta_rotations[2] = delta_rotations[2] * self.back_left_direction
-            delta_rotations[3] = delta_rotations[3] * self.back_right_direction
+            delta_rotations[0] = delta_rotations[0] * self.front_left_direction *  0.637
+            delta_rotations[1] = delta_rotations[1] * self.front_right_direction * 1.0
+            delta_rotations[2] = delta_rotations[2] * self.back_left_direction * 0.828
+            delta_rotations[3] = delta_rotations[3] * self.back_right_direction * 0.7269
 
             self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
