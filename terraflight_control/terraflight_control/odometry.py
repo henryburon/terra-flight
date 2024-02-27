@@ -45,6 +45,9 @@ class Odometry(Node):
         self.backward_time = 0.0
         self.right_time = 0.0
         self.left_time = 0.0
+        self.x_test = 0.0
+        self.y_test = 0.0
+        self.theta_test = 0.0
 
         self.serial_port = "/dev/ttyACM0"
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
@@ -209,6 +212,26 @@ class Odometry(Node):
         if self.mode == "test":
             self.get_logger().info(f"S: {self.stop_time}, F: {self.forward_time}, B: {self.backward_time}, R: {self.right_time}, L: {self.left_time}")
             
+            # in degrees
+            self.theta_test = (self.left_time * 83.68) + (-1 * self.right_time * 70.4156)
+
+            q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
+
+            t = TransformStamped()
+            t.header.stamp = self.get_clock().now().to_msg()
+            t.header.frame_id = "world"
+            t.child_frame_id = "base_footprint"
+            t.transform.translation.x = self.x_test
+            t.transform.translation.y = self.y_test
+            t.transform.translation.z = 0.0
+
+            t.transform.rotation.x = q[0]
+            t.transform.rotation.y = q[1]
+            t.transform.rotation.z = q[2]
+            t.transform.rotation.w = q[3]
+
+            self.tf_broadcaster.sendTransform(t)
+
 
             
 
