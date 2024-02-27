@@ -218,6 +218,3 @@ def odometry_entry(args=None):
     node = Odometry()
     rclpy.spin(node)
     rclpy.shutdown()
-
-if __name__ == "__main__":
-    odometry_entry()
