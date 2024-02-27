@@ -243,16 +243,16 @@ class Odometry(Node):
 
             if self.robot_motion in ["forward", "backward"]:
 
-                if self.previous_movement == "right/left":
-                    # if previous command was spin, check once for current position
-                    try:
-                        robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
-                        self.offset_x = robot_transform.transform.translation.x
-                        self.offset_y = robot_transform.transform.translation.y
+                # if self.previous_movement == "right/left":
+                # if previous command was spin, check once for current position
+                try:
+                    robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
+                    self.offset_x = robot_transform.transform.translation.x
+                    self.offset_y = robot_transform.transform.translation.y
 
-                    except TransformException as e:
-                        self.get_logger().error(f"Error: {e}")
-                        return
+                except TransformException as e:
+                    self.get_logger().error(f"Error: {e}")
+                    return
                 
                 self.x_test += self.offset_x
                 self.y_test += self.offset_y
