@@ -8,11 +8,11 @@ class Odom(Node):
         super().__init__("odom")
         self.serial_port = "/dev/ttyACM0"  # Adjust as per your system
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
-        self.create_timer(0.1, self.run)  # Create a timer to call run() every 0.1 seconds
+        self.create_timer(0.01, self.run)  # Create a timer to call run() every 0.1 seconds
 
     def run(self):
         try:
-            data = self.ser.readline().decode().strip()
+            data = self.ser.readline().decode('utf-8').strip() 
             if data:
                 self.get_logger().info(data)
         except Exception as e:
