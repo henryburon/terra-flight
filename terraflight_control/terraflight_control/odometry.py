@@ -254,8 +254,10 @@ class Odometry(Node):
                     self.get_logger().error(f"Error: {e}")
                     return
                 
-                self.x_test += self.offset_x
-                self.y_test += self.offset_y
+                if self.previous_movement == "left/right":
+                    self.x_test += self.offset_x
+                    self.y_test += self.offset_y
+                
 
                 self.previous_movement = "forward/backward"
 
