@@ -263,56 +263,6 @@ class Odometry(Node):
                 self.previous_movement = "left/right"
 
 
-
-
-
-
-
-
-
-
-                    
-                
-
-
-
-
-
-
-
-            
-            # calculate displacement
-            if self.robot_motion in ["forward", "backward"]:
-                self.x_test = mag * math.cos(radians)
-                self.y_test = mag * math.sin(radians)
-
-            if self.robot_motion in ["left", "right"]:
-                try:
-                    robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
-                except TransformException as e:
-                    self.get_logger().error(f"Error: {e}")
-                    return
-
-                self.offset_x = robot_transform.transform.translation.x
-                self.offset_y = robot_transform.transform.translation.y
-                self.x_test += self.offset_x
-                self.y_test += self.offset_y
-
-
-            self.get_logger().info(f"offset_x: {self.offset_x}, offset_y: {self.offset_y}")
-
-            
-
-
-            # self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
-
-
-
-            # Make actual positions
-            # self.actual_x = robot_transform.transform.translation.x
-            # self.actual_y = robot_transform.transform.translation.y
-
-
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
 
             t = TransformStamped()
