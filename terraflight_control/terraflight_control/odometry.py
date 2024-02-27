@@ -237,8 +237,9 @@ class Odometry(Node):
             radians = math.radians(self.theta_test)
 
             # calculate displacement
-            self.x_test = mag * math.cos(radians)
-            self.y_test = mag * math.sin(radians)
+            if self.robot_motion in ["forward", "backward"]:
+                self.x_test = mag * math.cos(radians)
+                self.y_test = mag * math.sin(radians)
 
             if self.robot_motion in ["forward", "backward"]:
 
@@ -261,6 +262,9 @@ class Odometry(Node):
             elif self.robot_motion in ["left", "right"]:
 
                 self.previous_movement = "left/right"
+
+
+            self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
 
 
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
