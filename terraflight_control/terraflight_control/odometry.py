@@ -239,13 +239,16 @@ class Odometry(Node):
 
             if self.robot_motion in ["left", "right"]:
                 try:
-                    robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", self.get_clock().now())
+                    robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
                 except TransformException as e:
                     self.get_logger().error(f"Error: {e}")
                     return
 
                 self.offset_x = robot_transform.transform.translation.x
                 self.offset_y = robot_transform.transform.translation.y
+
+
+            self.get_logger().info(f"offset_x: {self.offset_x}, offset_y: {self.offset_y}")
 
             self.x_test += self.offset_x
             self.y_test += self.offset_y
