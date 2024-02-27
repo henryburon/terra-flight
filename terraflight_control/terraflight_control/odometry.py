@@ -229,7 +229,7 @@ class Odometry(Node):
     def robot_state_callback(self):
 
         if self.mode == "test":
-            
+
             # in degrees
             self.theta_test = (self.left_time * 75.68) + (-1 * self.right_time * 70.4156)
 
@@ -247,10 +247,10 @@ class Odometry(Node):
                 self.x_test += self.offset_x
                 self.y_test += self.offset_y
 
-                if self.flag == True:  # ADDED
-                    self.x_test -= self.offset_x
-                    self.y_test -= self.offset_y
-                    self.flag = False
+                # if self.flag == True:  # ADDED
+                #     self.x_test -= self.offset_x
+                #     self.y_test -= self.offset_y
+                #     self.flag = False
 
                 
                 self.previous_movement = "forward/backward"
