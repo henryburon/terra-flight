@@ -42,16 +42,16 @@ class Odometry(Node):
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
 
         # Timer
-        self.update_rotations_timer = self.create_timer(0.001, self.update_rotations_callback)  # 10 Hz
-        self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
+        # self.update_rotations_timer = self.create_timer(0.001, self.update_rotations_callback)  # 10 Hz
+        # self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
         self.receive_rotations_callback = self.create_timer(0.01, self.receive_rotations_callback)  # 100 Hz
 
-        # Subscribers
-        self.robot_motion_sub = self.create_subscription(
-            String,
-            'robot_motion',
-            self.robot_motion_callback,
-            10)
+        # # Subscribers
+        # self.robot_motion_sub = self.create_subscription(
+        #     String,
+        #     'robot_motion',
+        #     self.robot_motion_callback,
+        #     10)
 
         # Robot config
         self.robot_config = {
