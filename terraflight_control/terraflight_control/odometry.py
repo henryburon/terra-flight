@@ -210,10 +210,10 @@ class Odometry(Node):
 
     def robot_state_callback(self):
         if self.mode == "test":
-            self.get_logger().info(f"S: {self.stop_time}, F: {self.forward_time}, B: {self.backward_time}, R: {self.right_time}, L: {self.left_time}")
+            # self.get_logger().info(f"S: {self.stop_time}, F: {self.forward_time}, B: {self.backward_time}, R: {self.right_time}, L: {self.left_time}")
             
             # in degrees
-            self.theta_test = (self.left_time * 81.68) + (-1 * self.right_time * 70.4156)
+            self.theta_test = (self.left_time * 75.68) + (-1 * self.right_time * 70.4156)
 
             # get magnitude and direction
             mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
@@ -222,6 +222,9 @@ class Odometry(Node):
             # calculate displacement
             self.x_test = mag * math.cos(radians)
             self.y_test = mag * math.sin(radians)
+
+
+            self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
 
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
 
