@@ -43,15 +43,15 @@ class Odometry(Node):
 
         # Timer
         # self.update_rotations_timer = self.create_timer(0.001, self.update_rotations_callback)  # 10 Hz
-        # self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
+        self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
         self.receive_rotations_callback = self.create_timer(0.01, self.receive_rotations_callback)  # 100 Hz
 
         # # Subscribers
-        # self.robot_motion_sub = self.create_subscription(
-        #     String,
-        #     'robot_motion',
-        #     self.robot_motion_callback,
-        #     10)
+        self.robot_motion_sub = self.create_subscription(
+            String,
+            'robot_motion',
+            self.robot_motion_callback,
+            10)
 
         # Robot config
         self.robot_config = {
@@ -67,9 +67,9 @@ class Odometry(Node):
         self.tf_broadcaster = TransformBroadcaster(self)
 
         # front left, front right, back left, back right
-        self.rotation_measurements = [0, 0, 0, 0]
+        self.all_rotations = np.array([0, 0, 0, 0])
         self.net_rotation = np.array([0, 0, 0, 0])
-        self.old_rotations = [0, 0, 0, 0]
+        self.old_rotations = np.array([0, 0, 0, 0])
 
         self.log_counter = 0
 
@@ -82,38 +82,56 @@ class Odometry(Node):
         try:
             data = self.ser.readline().decode('utf-8').strip()
             if data:
-                self.rotation_measurements = [float(x) / 4 for x in data.split(" ")]
-                self.get_logger().info(f"Rotations: {self.rotation_measurements}")
+                self.all_rotations = [float(x) / 4 for x in data.split(" ")]
+                self.get_logger().info(f"Rotations: {self.all_rotations}")
         except Exception as e:
             self.get_logger().error(f"Error: {e}")
+
+    # callback that logs the actual motion
+    def timer_callback(self):
+
+        if self.robot_motion != "stop":
+            delta_rotations = np.array(self.all_rotations.copy()) - np.array(self.old_rotations)
+            self.net_rotation = np.float64(self.net_rotation) + delta_rotations
+
+        self.old_rotations = self.all_rotations.copy()
+
+        self.get_logger().info(f"Net rotation: {self.net_rotation}")
+
+
+
+
+
+
+    
+
+    def robot_motion_callback(self, msg):
+        self.robot_motion = msg.data
+
+        if self.robot_motion == "forward":
+            self.front_left_direction = 1
+            self.front_right_direction = 1
+            self.back_left_direction = 1
+            self.back_right_direction = 1
+        elif self.robot_motion == "backward":
+            self.front_left_direction = -1
+            self.front_right_direction = -1
+            self.back_left_direction = -1
+            self.back_right_direction = -1
+        elif self.robot_motion == "left":
+            self.front_left_direction = -1
+            self.front_right_direction = 1
+            self.back_left_direction = -1
+            self.back_right_direction = 1
+        elif self.robot_motion == "right":
+            self.front_left_direction = 1
+            self.front_right_direction = -1
+            self.back_left_direction = 1
+            self.back_right_direction = -1
 
     # def timer_callback(self):
     #     # Main timer callback. Updates the robot configuration.
     #     self.update_robot_config()
-
-    # def robot_motion_callback(self, msg):
-    #     self.robot_motion = msg.data
-
-    #     if self.robot_motion == "forward":
-    #         self.front_left_direction = 1
-    #         self.front_right_direction = 1
-    #         self.back_left_direction = 1
-    #         self.back_right_direction = 1
-    #     elif self.robot_motion == "backward":
-    #         self.front_left_direction = -1
-    #         self.front_right_direction = -1
-    #         self.back_left_direction = -1
-    #         self.back_right_direction = -1
-    #     elif self.robot_motion == "left":
-    #         self.front_left_direction = -1
-    #         self.front_right_direction = 1
-    #         self.back_left_direction = -1
-    #         self.back_right_direction = 1
-    #     elif self.robot_motion == "right":
-    #         self.front_left_direction = 1
-    #         self.front_right_direction = -1
-    #         self.back_left_direction = 1
-    #         self.back_right_direction = -1
 
     
 
