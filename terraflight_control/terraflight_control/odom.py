@@ -12,11 +12,11 @@ class Odom(Node):
 
     def run(self):
         try:
-            data = self.ser.readline().decode().strip()
+            data = self.ser.readline().decode('utf-8').strip() 
             if data:
                 self.get_logger().info(data)
         except Exception as e:
-            self.get_logger().error(f"Error: {e}")
+            self.get_logger().error(f"Error: {e}") 
 
 def odom_entry(args=None):
     rclpy.init(args=args)
