@@ -9,6 +9,9 @@ from std_msgs.msg import String
 import modern_robotics as mr
 from scipy.spatial.transform import Rotation
 import serial
+from tf2_ros import TransformException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
 
 
 
@@ -49,9 +52,18 @@ class Odometry(Node):
         self.x_test = 0.0
         self.y_test = 0.0
         self.theta_test = 0.0
+        self.actual_x = 0.0
+        self.actual_y = 0.0
+        self.actual_theta = 0.0
+        self.offset_x = 0.0
+        self.offset_y = 0.0
 
         self.serial_port = "/dev/ttyACM0"
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
+
+        # TF Listener
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         # Timer
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
@@ -210,8 +222,8 @@ class Odometry(Node):
 
 
     def robot_state_callback(self):
+
         if self.mode == "test":
-            # self.get_logger().info(f"S: {self.stop_time}, F: {self.forward_time}, B: {self.backward_time}, R: {self.right_time}, L: {self.left_time}")
             
             # in degrees
             self.theta_test = (self.left_time * 75.68) + (-1 * self.right_time * 70.4156)
@@ -225,8 +237,28 @@ class Odometry(Node):
                 self.x_test = mag * math.cos(radians)
                 self.y_test = mag * math.sin(radians)
 
+            if self.robot_motion in ["left", "right"]:
+                try:
+                    robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", self.get_clock().now())
+                except TransformException as e:
+                    self.get_logger().error(f"Error: {e}")
+                    return
 
-            self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
+                self.offset_x = robot_transform.transform.translation.x
+                self.offset_y = robot_transform.transform.translation.y
+
+            self.x_test += self.offset_x
+            self.y_test += self.offset_y
+
+
+            # self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
+
+
+
+            # Make actual positions
+            # self.actual_x = robot_transform.transform.translation.x
+            # self.actual_y = robot_transform.transform.translation.y
+
 
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
 
