@@ -61,6 +61,7 @@ class Odometry(Node):
         self.previous_x = 0.0
         self.previous_y = 0.0
         self.previous_theta = 0.0
+        self.flag = False
 
         self.serial_port = "/dev/ttyACM0"
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
@@ -245,10 +246,19 @@ class Odometry(Node):
 
                 self.x_test += self.offset_x
                 self.y_test += self.offset_y
+
+                if self.flag == True:  # ADDED
+                    self.x_test -= self.offset_x
+                    self.y_test -= self.offset_y
+                    self.flag = False
+
                 
                 self.previous_movement = "forward/backward"
 
             elif self.robot_motion in ["left", "right"]:
+
+                self.flag = True
+
                 try:
                     robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
                     self.offset_x = robot_transform.transform.translation.x
