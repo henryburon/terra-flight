@@ -246,12 +246,13 @@ class Odometry(Node):
 
                 self.offset_x = robot_transform.transform.translation.x
                 self.offset_y = robot_transform.transform.translation.y
+                self.x_test += self.offset_x
+                self.y_test += self.offset_y
 
 
             self.get_logger().info(f"offset_x: {self.offset_x}, offset_y: {self.offset_y}")
 
-            self.x_test += self.offset_x
-            self.y_test += self.offset_y
+            
 
 
             # self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
