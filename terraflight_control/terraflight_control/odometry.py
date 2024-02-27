@@ -259,19 +259,6 @@ class Odometry(Node):
                 self.previous_movement = "forward/backward"
 
             elif self.robot_motion in ["left", "right"]:
-                if self.previous_movement == "forward/backward":
-                    # if previous command was forward, check once for current position
-                    try:
-                        robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
-                        self.offset_x = robot_transform.transform.translation.x
-                        self.offset_y = robot_transform.transform.translation.y
-
-                    except TransformException as e:
-                        self.get_logger().error(f"Error: {e}")
-                        return
-                
-                self.x_test += self.offset_x
-                self.y_test += self.offset_y
 
                 self.previous_movement = "left/right"
 
@@ -295,6 +282,7 @@ class Odometry(Node):
 
 
             
+
 
 def odometry_entry(args=None):
     rclpy.init(args=args)
