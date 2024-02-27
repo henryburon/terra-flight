@@ -243,14 +243,9 @@ class Odometry(Node):
 
             if self.robot_motion in ["forward", "backward"]:
 
+                self.x_test += self.offset_x
+                self.y_test += self.offset_y
                 
-        
-                
-                if self.previous_movement == "left/right":
-                    self.x_test += self.offset_x
-                    self.y_test += self.offset_y
-                
-
                 self.previous_movement = "forward/backward"
 
             elif self.robot_motion in ["left", "right"]:
@@ -266,8 +261,9 @@ class Odometry(Node):
                 self.previous_movement = "left/right"
 
 
-            self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
-
+            # self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
+            # log offset
+            self.get_logger().info(f"Offset x: {self.offset_x}, Offset y: {self.offset_y}")
 
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
 
