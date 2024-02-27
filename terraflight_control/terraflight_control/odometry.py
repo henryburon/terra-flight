@@ -260,6 +260,10 @@ class Odometry(Node):
 
                 self.previous_movement = "left/right"
 
+            if self.offset_x > 0.0 or self.offset_y > 0.0:
+                self.x_test -= self.offset_x
+                self.y_test -= self.offset_y
+
 
             # self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
             # log offset
