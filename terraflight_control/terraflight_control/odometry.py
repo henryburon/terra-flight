@@ -9,6 +9,10 @@ from std_msgs.msg import String
 import modern_robotics as mr
 from scipy.spatial.transform import Rotation
 import serial
+from tf2_ros import TransformException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+
 
 
 def quaternion_from_euler(ai, aj, ak):
@@ -52,13 +56,18 @@ class Odometry(Node):
         self.serial_port = "/dev/ttyACM0"
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
 
+        # TF Listener
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+
+
         # Timer
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
         self.receive_rotations_callback = self.create_timer(0.01, self.receive_rotations_callback)  # 100 Hz
         self.update_robot_config_callback = self.create_timer(0.01, self.update_robot_config_callback)  # 100 Hz
         self.robot_state_timer = self.create_timer(0.01, self.robot_state_callback)  # 100 Hz
 
-        # # Subscribers
+        # Subscribers
         self.robot_motion_sub = self.create_subscription(
             String,
             'robot_motion',
@@ -209,6 +218,14 @@ class Odometry(Node):
 
 
     def robot_state_callback(self):
+        tf_flag = False
+        
+        try:
+            wrld_robot = self.tf_buffer.lookup_transform("base_footprint", "world", rclpy.time.Time())
+        except TransformException as e:
+            self.get_logger().error(f"Error: {e}")
+            
+
         if self.mode == "test":
             # self.get_logger().info(f"S: {self.stop_time}, F: {self.forward_time}, B: {self.backward_time}, R: {self.right_time}, L: {self.left_time}")
             
@@ -218,12 +235,15 @@ class Odometry(Node):
             # get magnitude and direction
             mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
             radians = math.radians(self.theta_test)
-            
             # calculate displacement
             if self.robot_motion in ["forward", "backward"]:
                 self.x_test = mag * math.cos(radians)
                 self.y_test = mag * math.sin(radians)
+                tf_flag = True
 
+            if tf_flag:
+                self.x_test += wrld_robot.transform.translation.x
+                self.y_test += wrld_robot.transform.translation.y
 
             self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
 
