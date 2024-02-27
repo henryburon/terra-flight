@@ -83,7 +83,7 @@ class Odometry(Node):
             data = self.ser.readline().decode('utf-8').strip()
             if data:
                 self.all_rotations = [float(x) / 4 for x in data.split(" ")]
-                self.get_logger().info(f"Rotations: {self.all_rotations}")
+                # self.get_logger().info(f"Rotations: {self.all_rotations}")
         except Exception as e:
             self.get_logger().error(f"Error: {e}")
 
