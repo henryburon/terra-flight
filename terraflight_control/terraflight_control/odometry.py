@@ -213,7 +213,15 @@ class Odometry(Node):
             self.get_logger().info(f"S: {self.stop_time}, F: {self.forward_time}, B: {self.backward_time}, R: {self.right_time}, L: {self.left_time}")
             
             # in degrees
-            self.theta_test = (self.left_time * 83.68) + (-1 * self.right_time * 70.4156)
+            self.theta_test = (self.left_time * 81.68) + (-1 * self.right_time * 70.4156)
+
+            # get magnitude and direction
+            mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
+            radians = math.radians(self.theta_test)
+            
+            # calculate displacement
+            self.x_test = mag * math.cos(radians)
+            self.y_test = mag * math.sin(radians)
 
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
 
