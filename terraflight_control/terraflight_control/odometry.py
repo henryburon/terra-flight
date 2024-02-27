@@ -243,8 +243,8 @@ class Odometry(Node):
 
             if self.robot_motion in ["forward", "backward"]:
 
-                # self.x_test += self.offset_x
-                # self.y_test += self.offset_y
+                self.x_test += self.offset_x
+                self.y_test += self.offset_y
                 
                 self.previous_movement = "forward/backward"
 
@@ -262,7 +262,7 @@ class Odometry(Node):
 
 
 
-            # self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
+            self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
             # log offset
             self.get_logger().info(f"Offset x: {self.offset_x}, Offset y: {self.offset_y}")
 
