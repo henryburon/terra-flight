@@ -42,9 +42,10 @@ class Odometry(Node):
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
 
         # Timer
-        # self.update_rotations_timer = self.create_timer(0.001, self.update_rotations_callback)  # 10 Hz
         self.timer_callback = self.create_timer(0.01, self.timer_callback)  # 100 Hz
         self.receive_rotations_callback = self.create_timer(0.01, self.receive_rotations_callback)  # 100 Hz
+        self.update_robot_config_callback = self.create_timer(0.01, self.update_robot_config_callback)  # 100 Hz
+
 
         # # Subscribers
         self.robot_motion_sub = self.create_subscription(
@@ -82,7 +83,7 @@ class Odometry(Node):
         try:
             data = self.ser.readline().decode('utf-8').strip()
             if data:
-                self.all_rotations = [float(x) / 4 for x in data.split(" ")]
+                self.all_rotations = [float(x) / 8 for x in data.split(" ")] # div by 4 gives it the 753.2 ticks per rotation
                 # self.get_logger().info(f"Rotations: {self.all_rotations}")
         except Exception as e:
             self.get_logger().error(f"Error: {e}")
@@ -92,18 +93,17 @@ class Odometry(Node):
 
         if self.robot_motion != "stop":
             delta_rotations = np.array(self.all_rotations.copy()) - np.array(self.old_rotations)
+
+            delta_rotations[0] = delta_rotations[0] * self.front_left_direction
+            delta_rotations[1] = delta_rotations[1] * self.front_right_direction
+            delta_rotations[2] = delta_rotations[2] * self.back_left_direction
+            delta_rotations[3] = delta_rotations[3] * self.back_right_direction
+
             self.net_rotation = np.float64(self.net_rotation) + delta_rotations
 
         self.old_rotations = self.all_rotations.copy()
 
         self.get_logger().info(f"Net rotation: {self.net_rotation}")
-
-
-
-
-
-
-    
 
     def robot_motion_callback(self, msg):
         self.robot_motion = msg.data
@@ -129,88 +129,62 @@ class Odometry(Node):
             self.back_left_direction = 1
             self.back_right_direction = -1
 
-    # def timer_callback(self):
-    #     # Main timer callback. Updates the robot configuration.
-    #     self.update_robot_config()
-
-    
-
-    # def update_rotations_callback(self): # 100 Hz
-
-    #     # Sensor readings only valid if robot should be moving
-    #     # if self.robot_motion != "stop":
-
-    #     delta_rotations = np.array(self.rotation_measurements.copy()) - np.array(self.old_rotations)
-
-    #     delta_rotations[0] = delta_rotations[0] * self.front_left_direction
-    #     delta_rotations[1] = delta_rotations[1] * self.front_right_direction
-    #     delta_rotations[2] = delta_rotations[2] * self.back_left_direction
-    #     delta_rotations[3] = delta_rotations[3] * self.back_right_direction
-
-    #     self.net_rotation = np.float64(self.net_rotation) + delta_rotations
-
-    #     self.get_logger().info(f"Net rotation: {self.net_rotation}")
-
-    #     self.old_rotations = self.rotation_measurements.copy()
-
-
-
-    # def update_robot_config(self):
-    #     # Update the robot configuration based on the actual rotations of the wheels (do odometry here)
-    #     net_radians = self.net_rotation * 2.0 * np.pi
-    #     r = 0.08575 # may need to decrease due to poor inflation
-    #     D = 0.231775 # half the distance between left and right wheels
+    def update_robot_config_callback(self):
+        # Update the robot configuration based on the actual rotations of the wheels (do odometry here)
+        net_radians = self.net_rotation * 2.0 * np.pi
+        r = 0.08575 # may need to decrease due to poor inflation
+        D = 0.231775 # half the distance between left and right wheels
         
-    #     # Find twist Vb
-    #     H_pseudo_inv = np.array([[-1/D, 1/D, 1/D, -1/D],
-    #                             [1, 1, 1, 1],
-    #                             [0, 0, 0, 0]])
+        # Find twist Vb
+        H_pseudo_inv = np.array([[-1/D, 1/D, 1/D, -1/D],
+                                [1, 1, 1, 1],
+                                [0, 0, 0, 0]])
 
-    #     reshape_radians = np.array([[net_radians[0]],
-    #                                  [net_radians[1]],
-    #                                  [net_radians[3]], # due to the H_pseudo_inv matrix setup
-    #                                  [net_radians[2]]])
+        reshape_radians = np.array([[net_radians[0]],
+                                     [net_radians[1]],
+                                     [net_radians[3]], # due to the H_pseudo_inv matrix setup
+                                     [net_radians[2]]])
 
-    #     Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
-    #     Vb6 = np.array([0, 0, Vb[0][0], Vb[1][0], Vb[2][0], 0])
+        Vb = (r/4) * np.dot(H_pseudo_inv, reshape_radians)
+        Vb6 = np.array([0, 0, Vb[0][0], Vb[1][0], Vb[2][0], 0])
 
-    #     twist_se3 = mr.VecTose3(Vb6)
-    #     integrated_pose = mr.MatrixExp6(twist_se3)
+        twist_se3 = mr.VecTose3(Vb6)
+        integrated_pose = mr.MatrixExp6(twist_se3)
 
-    #     position = integrated_pose[0:3, 3]
-    #     rotation_matrix = integrated_pose[0:3, 0:3]
+        position = integrated_pose[0:3, 3]
+        rotation_matrix = integrated_pose[0:3, 0:3]
 
-    #     # Convert the rotation matrix to Euler angles
-    #     theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
+        # Convert the rotation matrix to Euler angles
+        theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
 
-    #     # self.get_logger().info(f"x: {position[0]}, y: {position[1]}, theta: {theta}")
+        # self.get_logger().info(f"x: {position[0]}, y: {position[1]}, theta: {theta}")
 
-    #     self.robot_config["x"] = position[0]
-    #     self.robot_config["y"] = position[1]
-    #     self.robot_config["theta"] = theta
+        self.robot_config["x"] = position[0]
+        self.robot_config["y"] = position[1]
+        self.robot_config["theta"] = theta
 
-    #     # self.get_logger().info(f"Total rotations: {self.net_rotation}")
-    #     # self.get_logger().info(f"Robot config: {self.robot_config}")
+        # self.get_logger().info(f"Total rotations: {self.net_rotation}")
+        # self.get_logger().info(f"Robot config: {self.robot_config}")
 
-    #     # update robot configuration
-    #     t = TransformStamped()
-    #     t.header.stamp = self.get_clock().now().to_msg()
-    #     t.header.frame_id = "world"
-    #     t.child_frame_id = "base_footprint"
-    #     t.transform.translation.x = self.robot_config["x"]
-    #     t.transform.translation.y = self.robot_config["y"]
-    #     t.transform.translation.z = 0.0
+        # update robot configuration
+        t = TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = "world"
+        t.child_frame_id = "base_footprint"
+        t.transform.translation.x = self.robot_config["x"]
+        t.transform.translation.y = self.robot_config["y"]
+        t.transform.translation.z = 0.0
 
-    #     # q = quaternion_from_euler(0, 0, self.robot_config["theta"]) # in radians
+        # q = quaternion_from_euler(0, 0, self.robot_config["theta"]) # in radians
 
-    #     q = Rotation.from_euler('xyz', [0, 0, self.robot_config["theta"]]).as_quat()
+        q = Rotation.from_euler('xyz', [0, 0, self.robot_config["theta"]]).as_quat()
 
-    #     t.transform.rotation.x = q[0]
-    #     t.transform.rotation.y = q[1]
-    #     t.transform.rotation.z = q[2]
-    #     t.transform.rotation.w = q[3]
+        t.transform.rotation.x = q[0]
+        t.transform.rotation.y = q[1]
+        t.transform.rotation.z = q[2]
+        t.transform.rotation.w = q[3]
 
-    #     self.tf_broadcaster.sendTransform(t)
+        self.tf_broadcaster.sendTransform(t)
 
 
 def odometry_entry(args=None):
