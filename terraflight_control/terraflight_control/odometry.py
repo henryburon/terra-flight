@@ -237,9 +237,7 @@ class Odometry(Node):
             radians = math.radians(self.theta_test)
 
             # calculate displacement
-            if self.robot_motion in ["forward", "backward"]:
-                self.x_test = mag * math.cos(radians)
-                self.y_test = mag * math.sin(radians)
+            
 
             if self.robot_motion in ["forward", "backward"]:
 
@@ -253,6 +251,9 @@ class Odometry(Node):
                     except TransformException as e:
                         self.get_logger().error(f"Error: {e}")
                         return
+                    
+                self.x_test = mag * math.cos(radians)
+                self.y_test = mag * math.sin(radians)
                 
                 self.x_test += self.offset_x
                 self.y_test += self.offset_y
