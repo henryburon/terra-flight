@@ -38,7 +38,7 @@ class Odometry(Node):
     def __init__(self):
         super().__init__("odometry")
 
-        self.serial_port = "/dev/ttyACMO"
+        self.serial_port = "/dev/ttyACM0"
         self.ser = serial.Serial(self.serial_port, baudrate=9600)
 
         # Timer
