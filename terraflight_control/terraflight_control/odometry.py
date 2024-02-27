@@ -8,6 +8,7 @@ import math
 from std_msgs.msg import String
 import modern_robotics as mr
 from scipy.spatial.transform import Rotation
+import serial
 
 
 def quaternion_from_euler(ai, aj, ak):
