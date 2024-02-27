@@ -237,7 +237,7 @@ class Odometry(Node):
             radians = math.radians(self.theta_test)
 
             # calculate displacement
-            if self.previous_movement == "forward/backward":
+            if self.robot_motion in ["forward", "backward"]:
                 self.x_test = mag * math.cos(radians)
                 self.y_test = mag * math.sin(radians)
 
