@@ -15,6 +15,9 @@ class Odom(Node):
             data = self.ser.readline().decode('utf-8').strip() 
             if data:
                 self.get_logger().info(data)
+
+         # Handle exceptions
+                
         except Exception as e:
             self.get_logger().error(f"Error: {e}") 
 
