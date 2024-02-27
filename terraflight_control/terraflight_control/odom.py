@@ -16,7 +16,7 @@ class Odom(Node):
             if data:
                 self.get_logger().info(data)
         except Exception as e:
-            self.get_logger().error(f"Error: {e}")
+            self.get_logger().error(f"Error: {e}") 
 
 def odom_entry(args=None):
     rclpy.init(args=args)
