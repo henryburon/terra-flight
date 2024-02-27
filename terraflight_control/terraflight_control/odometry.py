@@ -244,8 +244,8 @@ class Odometry(Node):
 
             if self.robot_motion in ["forward", "backward"]:
 
-                self.x_test += self.offset_x
-                self.y_test += self.offset_y
+                # self.x_test += self.offset_x
+                # self.y_test += self.offset_y
 
                 # if self.flag == True:  # ADDED
                 #     self.x_test -= self.offset_x
