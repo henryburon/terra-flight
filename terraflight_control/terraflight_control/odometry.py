@@ -296,7 +296,6 @@ class Odometry(Node):
 
             
 
-
 def odometry_entry(args=None):
     rclpy.init(args=args)
     node = Odometry()
