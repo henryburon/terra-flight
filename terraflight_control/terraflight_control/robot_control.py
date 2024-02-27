@@ -68,8 +68,8 @@ class Robot_Control(Node):
             self.pwm_back_right.start(duty_cycle)
 
         elif self.robot_motion == "forward":
-            right_duty_cycle = (1150/20000) * 100 # changed from 1200 to 1300
-            left_duty_cycle = (1650/20000) * 100
+            right_duty_cycle = (1200/20000) * 100 # changed from 1200 to 1300
+            left_duty_cycle = (1600/20000) * 100
 
             self.pwm_front_left.start(left_duty_cycle)
             self.pwm_front_right.start(right_duty_cycle)
@@ -77,7 +77,7 @@ class Robot_Control(Node):
             self.pwm_back_right.start(right_duty_cycle)
 
         elif self.robot_motion == "backward":
-            right_duty_cycle = (1550/20000) * 100
+            right_duty_cycle = (1600/20000) * 100
             left_duty_cycle = (1200/20000) * 100
 
             self.pwm_front_left.start(left_duty_cycle)
@@ -94,7 +94,7 @@ class Robot_Control(Node):
             self.pwm_back_right.start(duty_cycle)
 
         elif self.robot_motion == "left":
-            duty_cycle = (1200/20000) * 100
+            duty_cycle = (1150/20000) * 100
 
             self.pwm_front_left.start(duty_cycle)
             self.pwm_front_right.start(duty_cycle)
