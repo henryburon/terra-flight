@@ -233,11 +233,11 @@ class Odometry(Node):
         if self.mode == "test":
 
             if self.previous_movement == "left/right":
-                self.left_time = 0.0
-                self.right_time = 0.0
+                self.forward_time = 0.0
+                self.backward_time = 0.0
 
 
-            # in degrees
+            # rotation in degrees
             self.theta_test = (self.left_time * 75.68) + (-1 * self.right_time * 70.4156)
 
             if self.robot_motion in ["forward", "backward"]:
@@ -257,8 +257,6 @@ class Odometry(Node):
 
             elif self.robot_motion in ["left", "right"]:
 
-                self.flag = True
-
                 try:
                     robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
                     self.offset_x = robot_transform.transform.translation.x
@@ -275,6 +273,8 @@ class Odometry(Node):
                 except TransformException as e:
                     self.get_logger().error(f"Error: {e}")
                     return
+                
+
 
                 self.previous_movement = "left/right"
 
