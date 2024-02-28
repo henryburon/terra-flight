@@ -63,8 +63,9 @@ class Odometry(Node):
         self.previous_theta = 0.0
         self.flag = False
 
-        self.serial_port = "/dev/ttyACM0"
-        self.ser = serial.Serial(self.serial_port, baudrate=9600)
+        if self.mode == "encoders":
+            self.serial_port = "/dev/ttyACM0"
+            self.ser = serial.Serial(self.serial_port, baudrate=9600)
 
         # TF Listener
         self.tf_buffer = Buffer()
