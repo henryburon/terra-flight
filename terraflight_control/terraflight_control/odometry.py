@@ -196,14 +196,9 @@ class Odometry(Node):
             # Convert the rotation matrix to Euler angles
             theta = np.arctan2(rotation_matrix[1, 0], rotation_matrix[0, 0])
 
-            # self.get_logger().info(f"x: {position[0]}, y: {position[1]}, theta: {theta}")
-
             self.robot_config["x"] = position[0]
             self.robot_config["y"] = position[1]
             self.robot_config["theta"] = theta
-
-            # self.get_logger().info(f"Total rotations: {self.net_rotation}")
-            # self.get_logger().info(f"Robot config: {self.robot_config}")
 
             # update robot configuration
             t = TransformStamped()
@@ -214,8 +209,6 @@ class Odometry(Node):
             t.transform.translation.y = self.robot_config["y"]
             t.transform.translation.z = 0.0
 
-            # q = quaternion_from_euler(0, 0, self.robot_config["theta"]) # in radians
-
             q = Rotation.from_euler('xyz', [0, 0, self.robot_config["theta"]]).as_quat()
 
             t.transform.rotation.x = q[0]
@@ -224,9 +217,6 @@ class Odometry(Node):
             t.transform.rotation.w = q[3]
 
             self.tf_broadcaster.sendTransform(t)
-        
-        # elif self.mode == "test":
-
 
     def robot_state_callback(self):
 
@@ -236,7 +226,6 @@ class Odometry(Node):
                 self.forward_time = 0.0
                 self.backward_time = 0.0
 
-
             # rotation in degrees
             self.theta_test = (self.left_time * 75.68) + (-1 * self.right_time * 70.4156)
 
@@ -244,15 +233,12 @@ class Odometry(Node):
 
                 # get magnitude and direction
                 mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
-
-                
                 radians = math.radians(self.theta_test)
 
                 # calculate displacement
                 self.x_test = mag * math.cos(radians) + self.offset_x
                 self.y_test = mag * math.sin(radians) + self.offset_y
 
-                
                 self.previous_movement = "forward/backward"
 
             elif self.robot_motion in ["left", "right"]:
@@ -268,25 +254,11 @@ class Odometry(Node):
 
                     self.offset_theta = Rotation.from_quat([rot_x, rot_y, rot_z, rot_w]).as_euler('xyz')[2]
 
-                    
-
                 except TransformException as e:
                     self.get_logger().error(f"Error: {e}")
                     return
                 
-
-
                 self.previous_movement = "left/right"
-
-
-
-
-
-            self.get_logger().info(f"Offset theta: {self.offset_theta}")
-            self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
-
-            # log offset
-            # self.get_logger().info(f"Offset x: {self.offset_x}, Offset y: {self.offset_y}")
 
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
 
@@ -304,9 +276,6 @@ class Odometry(Node):
             t.transform.rotation.w = q[3]
 
             self.tf_broadcaster.sendTransform(t)
-
-
-            
 
 
 def odometry_entry(args=None):
