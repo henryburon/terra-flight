@@ -57,6 +57,7 @@ class Odometry(Node):
         self.actual_theta = 0.0
         self.offset_x = 0.0
         self.offset_y = 0.0
+        self.offset_theta = 0.0
         self.previous_movement = "stop"
         self.previous_x = 0.0
         self.previous_y = 0.0
