@@ -232,6 +232,11 @@ class Odometry(Node):
 
         if self.mode == "test":
 
+            if self.previous_movement == "left/right":
+                self.left_time = 0.0
+                self.right_time = 0.0
+
+
             # in degrees
             self.theta_test = (self.left_time * 75.68) + (-1 * self.right_time * 70.4156)
 
@@ -244,16 +249,8 @@ class Odometry(Node):
                 radians = math.radians(self.theta_test)
 
                 # calculate displacement
-                self.x_test = mag * math.cos(radians)
-                self.y_test = mag * math.sin(radians)
-
-                # self.x_test += self.offset_x
-                # self.y_test += self.offset_y
-
-                # if self.flag == True:  # ADDED
-                #     self.x_test -= self.offset_x
-                #     self.y_test -= self.offset_y
-                #     self.flag = False
+                self.x_test = mag * math.cos(radians) + self.offset_x
+                self.y_test = mag * math.sin(radians) + self.offset_y
 
                 
                 self.previous_movement = "forward/backward"
@@ -281,9 +278,13 @@ class Odometry(Node):
 
                 self.previous_movement = "left/right"
 
+
+
+
+
             self.get_logger().info(f"Offset theta: {self.offset_theta}")
             self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
-            
+
             # log offset
             # self.get_logger().info(f"Offset x: {self.offset_x}, Offset y: {self.offset_y}")
 
