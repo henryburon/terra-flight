@@ -240,6 +240,7 @@ class Odometry(Node):
                 mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
 
                 if self.flag:
+                    self.offset_theta = 0
                     radians = 0
                     self.flag = False
                 else:
