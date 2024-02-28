@@ -239,12 +239,8 @@ class Odometry(Node):
                 # get magnitude and direction
                 mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
 
-                if self.flag:
-                    self.offset_theta = 0
-                    radians = 0
-                    self.flag = False
-                else:
-                    radians = math.radians(self.theta_test)
+                
+                radians = math.radians(self.theta_test - self.offset_theta)
 
                 # calculate displacement
                 self.x_test = mag * math.cos(radians)
@@ -276,8 +272,6 @@ class Odometry(Node):
 
                     self.offset_theta = Rotation.from_quat([rot_x, rot_y, rot_z, rot_w]).as_euler('xyz')[2]
                     self.get_logger().info(f"Offset theta: {self.offset_theta}")
-
-
 
                 except TransformException as e:
                     self.get_logger().error(f"Error: {e}")
