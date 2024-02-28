@@ -238,8 +238,8 @@ class Odometry(Node):
                 # get magnitude and direction
                 mag = (self.forward_time * 0.76362) - (self.backward_time * 0.72984)
 
-                if self.flag == True:
-                    radians = self.theta_test = 0
+                if self.flag:
+                    radians = self.offset_theta
                 else:
                     radians = math.radians(self.theta_test)
 
@@ -266,6 +266,15 @@ class Odometry(Node):
                     robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
                     self.offset_x = robot_transform.transform.translation.x
                     self.offset_y = robot_transform.transform.translation.y
+                    rot_x = robot_transform.transform.rotation.x
+                    rot_y = robot_transform.transform.rotation.y
+                    rot_z = robot_transform.transform.rotation.z
+                    rot_w = robot_transform.transform.rotation.w
+
+                    self.offset_theta = Rotation.from_quat([rot_x, rot_y, rot_z, rot_w]).as_euler('xyz')[2]
+                    self.get_logger().info(f"Offset theta: {self.offset_theta}")
+
+
 
                 except TransformException as e:
                     self.get_logger().error(f"Error: {e}")
@@ -275,9 +284,9 @@ class Odometry(Node):
 
 
 
-            self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
+            # self.get_logger().info(f"x: {self.x_test}, y: {self.y_test}, theta: {self.theta_test}")
             # log offset
-            self.get_logger().info(f"Offset x: {self.offset_x}, Offset y: {self.offset_y}")
+            # self.get_logger().info(f"Offset x: {self.offset_x}, Offset y: {self.offset_y}")
 
             q = quaternion_from_euler(0, 0, math.radians(self.theta_test))
 
