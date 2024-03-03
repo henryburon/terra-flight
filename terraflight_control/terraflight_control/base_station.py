@@ -3,11 +3,6 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from std_msgs.msg import String
 
-
-
-
-
-
 class Base_Station(Node):
     def __init__(self):
         super().__init__("base_station")
@@ -34,15 +29,11 @@ class Base_Station(Node):
         self.dpad = [0,0,0,0]
 
 
-
-
-
     def timer_callback(self):
 
         self.send_robot_commands()
 
     def joy_callback(self, msg):
-        # self.get_logger().info("entering joy callback")
 
         # Collect ps3 controller input values
         self.ps3_axes = msg.axes
@@ -83,12 +74,6 @@ class Base_Station(Node):
             robot_motion.data = "left"
         
         self.robot_motion_pub.publish(robot_motion)
-        
-
-     
-
-        
-
 
 
 def base_station_entry(args=None):
