@@ -39,7 +39,7 @@ class Robot_Camera(Node):
       ret, frame = self.cap.read()
 
       # Resize the image to reduce its quality
-      frame = cv2.resize(frame, (320, 240))  # Change the dimensions as needed
+      frame = cv2.resize(frame, (160, 120))  # Change the dimensions as needed
 
       # Convert the image to a ROS image
       try:
