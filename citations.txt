@@ -1,3 +1,8 @@
-[1] Open Source Mars Rover: https://github.com/nasa-jpl/open-source-rover/tree/master
-- Used drive wheel implementation from the open source mars rover.
-[2] Used for help setting up mesh with ament_python package: https://github.com/olmerg/lesson_urdf/tree/master
+[1] Desc: Used physical drive wheel implementation from the open source mars rover.
+    Link: https://github.com/nasa-jpl/open-source-rover/tree/master
+
+[2] Desc: Used for setting up mesh with ament_python package.
+    Link: https://github.com/nasa-jpl/open-source-rover/tree/master
+
+[3] Desc: Used for setting up Tello camera info parameters for Apriltags
+    Link: https://github.com/tentone/tello-ros2/blob/main/workspace/src/tello/tello/node.py
