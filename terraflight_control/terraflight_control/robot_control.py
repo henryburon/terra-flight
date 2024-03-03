@@ -50,8 +50,6 @@ class Robot_Control(Node):
         self.pwm_back_left.start(duty_cycle)
         self.pwm_back_right.start(duty_cycle)
 
-
-        
     def timer_callback(self):
         self.command_wheels()
 
@@ -100,12 +98,6 @@ class Robot_Control(Node):
             self.pwm_front_right.start(duty_cycle)
             self.pwm_back_left.start(duty_cycle)
             self.pwm_back_right.start(duty_cycle)
-
-        # self.get_logger().info(f'Now moving: {self.robot_motion}')
-
-        # Next step is to get this working on the raspberry pi
-
-
 
 
 def robot_control_entry(args=None):

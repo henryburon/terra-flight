@@ -27,3 +27,5 @@ To access the GPIO pins on the Raspberry Pi, and run the launch file, you must b
 
 **Required Packages**
 1. Joy
+2. apriltags_ros
+3. djitello

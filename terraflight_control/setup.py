@@ -11,7 +11,9 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml',
                                    'launch/base_station.launch.xml',
-                                   'launch/robot.launch.xml']),
+                                   'launch/robot.launch.xml',
+                                   'config/tags.yaml',
+                                   'config/tello_camera_config.yaml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -27,7 +29,7 @@ setup(
             'robot_camera = terraflight_control.robot_camera:robot_camera_entry',
             'drone_camera = terraflight_control.drone_camera:drone_camera_entry',
             'odometry = terraflight_control.odometry:odometry_entry',
-            'odom = terraflight_control.odom:odom_entry'
+            'drone_control = terraflight_control.drone_control:drone_control_entry'
         ],
     },
 )

@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    image_transport: raw
+    family: 36h11
+    size: 0.14993   # tag edge size in meters  
