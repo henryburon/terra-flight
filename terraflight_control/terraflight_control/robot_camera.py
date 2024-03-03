@@ -35,17 +35,20 @@ class Robot_Camera(Node):
         self.bridge = CvBridge()
 
     def publish_image_callback(self):
-        self.get_logger().info("Publishing image")
-        ret, frame = self.cap.read()
+      self.get_logger().info("Publishing image")
+      ret, frame = self.cap.read()
 
-        # Convert the image to a ROS image
-        try:
-            ros_image = self.bridge.cv2_to_imgmsg(frame, "bgr8")
-        except CvBridgeError as e:
-            print(e)
+      # Resize the image to reduce its quality
+      frame = cv2.resize(frame, (320, 240))  # Change the dimensions as needed
 
-        # Publish the image
-        self.image_pub.publish(ros_image)
+      # Convert the image to a ROS image
+      try:
+         ros_image = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+      except CvBridgeError as e:
+         print(e)
+
+      # Publish the image
+      self.image_pub.publish(ros_image)
 
 def robot_camera_entry(args=None):
     rclpy.init(args=args)
