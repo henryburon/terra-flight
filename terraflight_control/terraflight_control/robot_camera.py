@@ -10,7 +10,7 @@ class Robot_Camera(Node):
         super().__init__("robot_camera")
 
         # Timers
-        self.camera_timer = self.create_timer(1/30, self.publish_image_callback)
+        self.camera_timer = self.create_timer(1/5, self.publish_image_callback)
 
         # Initialize camera
         self.cap = cv2.VideoCapture(0)
