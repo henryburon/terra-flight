@@ -13,20 +13,20 @@ class Robot_Camera(Node):
         self.camera_timer = self.create_timer(1/30, self.publish_image_callback)
 
         # Initialize camera
-        self.cap = cv2.VideoCapture(2)
+        self.cap = cv2.VideoCapture(0)
 
         # Check if the camera opened successfully
         if not self.cap.isOpened():
-            print("Error: Could not open external camera.")
-            # If the external camera at index 1 didn't open, try other indices
-            for i in range(2, 10):
-                self.cap = cv2.VideoCapture(i)
-                if self.cap.isOpened():
-                    print(f"External camera found at index {i}")
-                    break
-            else:  # No external camera was found
-                print("No external camera found. Exiting...")
-                exit()
+         print("Error: Could not open external camera.")
+         # If the external camera at index 0 didn't open, try other indices
+         for i in range(1, 10):
+            self.cap = cv2.VideoCapture(i)
+            if self.cap.isOpened():
+                  print(f"External camera found at index {i}")
+                  break
+         else:  # No external camera was found
+            print("No external camera found. Exiting...")
+            exit()
 
         # Create a publisher
         self.image_pub = self.create_publisher(Image, 'camera/image', 10)
