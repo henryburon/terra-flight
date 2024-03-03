@@ -1,7 +1,7 @@
 <launch>
 
     <node pkg="terraflight_control" exec="robot_control"/>
-    <node pkg="terraflight_control" exec="fetch_camera"/>
+    <node pkg="terraflight_control" exec="robot_camera"/>
     <node pkg="terraflight_control" exec="odometry"/>
 
 </launch>

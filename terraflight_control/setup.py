@@ -24,7 +24,7 @@ setup(
         'console_scripts': [
             'base_station = terraflight_control.base_station:base_station_entry',
             'robot_control = terraflight_control.robot_control:robot_control_entry',
-            'robot_camera = terraflight_control.robot_camera:fetch_camera_entry',
+            'robot_camera = terraflight_control.robot_camera:robot_camera_entry',
             'drone_camera = terraflight_control.drone_camera:drone_camera_entry',
             'odometry = terraflight_control.odometry:odometry_entry',
             'odom = terraflight_control.odom:odom_entry'
