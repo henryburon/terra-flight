@@ -22,7 +22,7 @@ class Fetch_Camera(Node):
       self.camera_pub = self.create_publisher(Image, "robot_camera", 10)
 
       # Timers
-      self.camera_timer = self.create_timer(1/2, self.publish_image)
+      self.camera_timer = self.create_timer(1/3, self.publish_image)
 
       # Initialization
 
@@ -54,6 +54,8 @@ class Fetch_Camera(Node):
       # Convert images to numpy arrays
       color_image = np.asanyarray(color_frame.get_data())
 
+      color_image = cv2.resize(color_image, (260, 160))
+      
       # Create Image message
       msg = Image()
       msg.header.stamp = self.get_clock().now().to_msg()
