@@ -22,7 +22,7 @@ class Robot_Camera(Node):
       self.joy_sub = self.create_subscription(Joy, "/joy", self.joy_callback, 10)
 
       # Timers
-      self.camera_timer = self.create_timer(1/10, self.publish_image)
+      self.camera_timer = self.create_timer(1/5, self.publish_image)
 
       # Configure depth and color streams
       self.pipeline = rs.pipeline()
@@ -48,7 +48,7 @@ class Robot_Camera(Node):
             return
 
          color_image = np.asanyarray(color_frame.get_data())
-         color_image = cv2.resize(color_image, (260, 160))
+         color_image = cv2.resize(color_image, (230, 130))
          
          # Create Image message
          msg = Image()
