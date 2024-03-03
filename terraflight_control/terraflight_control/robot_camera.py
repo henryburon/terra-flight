@@ -35,10 +35,7 @@ class Robot_Camera(Node):
 
       self.allow_switch_state_flag = True
 
-   def publish_image(self):
-
-      # log state
-      self.get_logger().info(f"State: {self.state}")
+   def publish_image(self):      
 
       if self.state == State.ROBOT:
          # Fetch image from Intel Realsense
@@ -64,14 +61,16 @@ class Robot_Camera(Node):
          self.camera_pub.publish(msg)
 
    def joy_callback(self, msg):
-    if msg.buttons[10] == 1 and self.allow_switch_state_flag == True:
-        if self.state == State.ROBOT:
+      if msg.buttons[10] == 1 and self.allow_switch_state_flag == True:
+         if self.state == State.ROBOT:
             self.state = State.DRONE
-        elif self.state == State.DRONE:
+         elif self.state == State.DRONE:
             self.state = State.ROBOT
-        self.allow_switch_state_flag = False
-    elif msg.buttons[10] == 0:
-        self.allow_switch_state_flag = True
+         self.allow_switch_state_flag = False
+      elif msg.buttons[10] == 0:
+         self.allow_switch_state_flag = True
+   
+      self.get_logger().info(f"State: {self.state}")
       
 def robot_camera_entry(args=None):
    rclpy.init(args=args)

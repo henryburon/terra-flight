@@ -35,10 +35,7 @@ class Drone_Camera(Node):
 
       self.allow_switch_state_flag = True
 
-   def drone_image_callback(self):
-
-      # log state
-      self.get_logger().info(f"State: {self.state}")
+   def drone_image_callback(self):      
 
       if self.state == State.DRONE:
          # Fetch image from drone
@@ -54,14 +51,16 @@ class Drone_Camera(Node):
          self.drone_pub.publish(msg_img)
 
    def joy_callback(self, msg):
-    if msg.buttons[10] == 1 and self.allow_switch_state_flag == True:
-        if self.state == State.ROBOT:
+      if msg.buttons[10] == 1 and self.allow_switch_state_flag == True:
+         if self.state == State.ROBOT:
             self.state = State.DRONE
-        elif self.state == State.DRONE:
+         elif self.state == State.DRONE:
             self.state = State.ROBOT
-        self.allow_switch_state_flag = False
-    elif msg.buttons[10] == 0:
-        self.allow_switch_state_flag = True
+         self.allow_switch_state_flag = False
+      elif msg.buttons[10] == 0:
+         self.allow_switch_state_flag = True
+
+      self.get_logger().info(f"State: {self.state}")
       
 
 
