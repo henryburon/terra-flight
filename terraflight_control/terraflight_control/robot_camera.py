@@ -22,7 +22,7 @@ class Robot_Camera(Node):
       self.joy_sub = self.create_subscription(Joy, "/joy", self.joy_callback, 10)
 
       # Timers
-      self.camera_timer = self.create_timer(1/5, self.publish_image)
+      self.camera_timer = self.create_timer(1/3, self.publish_image)
 
       # Configure depth and color streams
       self.pipeline = rs.pipeline()
