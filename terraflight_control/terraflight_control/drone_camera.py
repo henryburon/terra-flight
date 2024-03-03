@@ -40,7 +40,6 @@ class Drone_Camera(Node):
       if self.state == State.DRONE:
          # Fetch image from drone
          image = self.drone.get_frame_read()
-
          resized = cv2.resize(image.frame, (0,0), fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
 
          # Publish image (cite Courtney)
@@ -62,8 +61,6 @@ class Drone_Camera(Node):
 
       self.get_logger().info(f"State: {self.state}")
       
-
-
 
 def drone_camera_entry(args=None):
    rclpy.init(args=args)
