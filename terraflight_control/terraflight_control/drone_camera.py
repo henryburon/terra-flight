@@ -28,10 +28,10 @@ class Drone_Camera(Node):
       self.joy_sub = self.create_subscription(Joy, "/joy", self.joy_callback, 10)
 
       # Initialize variables for Tello Drone
-      # self.drone = tello.Tello()
-      # self.drone.connect()
-      # self.drone.streamon()
-      # self.bridge = CvBridge()
+      self.drone = tello.Tello()
+      self.drone.connect()
+      self.drone.streamon()
+      self.bridge = CvBridge()
       self.image_timestamp = self.get_clock().now().to_msg()
 
       # Timers
@@ -74,7 +74,7 @@ class Drone_Camera(Node):
       if self.state == State.DRONE:
          # Fetch image from drone
          image = self.drone.get_frame_read()
-         resized = cv2.resize(image.frame, (0,0), fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+         resized = cv2.resize(image.frame, (0,0), fx=1.0, fy=1.0, interpolation=cv2.INTER_AREA)
 
          # Publish image
          msg_img = Image()
@@ -108,15 +108,15 @@ class Drone_Camera(Node):
       elif msg.buttons[10] == 0:
          self.allow_switch_state_flag = True
 
-      self.get_logger().info(f"State: {self.state}")
+      self.get_logger().info(f"State: {self.state}", once=True)
 
-   def make_top_static_apriltag_transforms(self):
+   def make_top_static_apriltag_transforms(self): # 5 is top
 
       # Static transformation from chassis to the top april tag
       top_tag_transform = TransformStamped()
       top_tag_transform.header.stamp = self.get_clock().now().to_msg()
       top_tag_transform.header.frame_id = "chassis"
-      top_tag_transform.child_frame_id = "top_tag"
+      top_tag_transform.child_frame_id = "top_tag" 
       top_tag_transform.transform.translation.x = 0.26
       top_tag_transform.transform.translation.y = 0.0
       top_tag_transform.transform.translation.z = 0.20
@@ -126,9 +126,9 @@ class Drone_Camera(Node):
       top_tag_transform.transform.rotation.z = q[2]
       top_tag_transform.transform.rotation.w = q[3]
 
-      self.tf_top_static_broadcaster.sendTransform(top_tag_transform)
+      # self.tf_top_static_broadcaster.sendTransform(top_tag_transform)
 
-   def make_back_static_apriltag_transforms(self):
+   def make_back_static_apriltag_transforms(self): # 6 is back
 
       # Static transformation from chassis to the back april tag
       back_tag_transform = TransformStamped()
@@ -138,13 +138,15 @@ class Drone_Camera(Node):
       back_tag_transform.transform.translation.x = 0.50
       back_tag_transform.transform.translation.y = 0.0
       back_tag_transform.transform.translation.z = 0.17
-      q = quaternion_from_euler(0.0, 1.57, 0.0)
+      q = quaternion_from_euler(0.0, 0.0, 0.0)
       back_tag_transform.transform.rotation.x = q[0]
       back_tag_transform.transform.rotation.y = q[1]
       back_tag_transform.transform.rotation.z = q[2]
       back_tag_transform.transform.rotation.w = q[3]
 
-      self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
+      # self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
+
+      # log the position of the back tag
 
 
 def quaternion_from_euler(ai, aj, ak):
