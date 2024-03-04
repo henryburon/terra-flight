@@ -9,10 +9,12 @@ Launch on robot: ```ros2 launch terraflight_control robot.launch.xml```
 **Additional Information**
 
 To access the GPIO pins on the Raspberry Pi, and run the launch file, you must be running as root.
-1. SSH into the robot  
-```ssh terra@192.168.18.155```  
-```robotics!```
-2. Run the launch file
+1. Ensure base station is connected to the same WiFi as the robot.
+2. SSH into the robot  
+If on NUMSR WiFi: ```ssh terra@192.168.18.155```  
+If on Terra WiFi: ```ssh terra@192.168.1.155```  
+Password: ```robotics!```
+3. Build and run the launch file on the robot
    ```
    sudo -i
    cd /home/terra/ws/winter_project
@@ -21,8 +23,8 @@ To access the GPIO pins on the Raspberry Pi, and run the launch file, you must b
    export ROS_DOMAIN_ID=34
    ros2 launch terraflight_control robot.launch.xml
    ```
-3. Use ```sudo halt``` for a clean shutdown.
-4. Wifi
+4. Use ```sudo halt``` for a clean shutdown.
+5. Wifi
 * The base station (laptop) must be connected to the same network as the Raspberry Pi and the Tello's network.
 
 **Required Packages**
