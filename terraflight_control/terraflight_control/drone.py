@@ -28,12 +28,14 @@ class DroneState(Enum):
 
 class DroneMovementState(Enum):
    WAITING = auto()
-   PROCESSING = auto()
    TAKEOFF = auto()
    LAND = auto()
    RIGHT = auto()
    LEFT = auto()
    FORWARD = auto()
+   BACKWARD = auto()
+   UP = auto()
+   DOWN = auto()
 
 class Drone(Node):
    def __init__(self):
@@ -43,7 +45,7 @@ class Drone(Node):
 
       # Publishers
       self.drone_pub = self.create_publisher(Image, "/drone_camera", 10)
-      self.camera_info_pub = self.create_publisher(CameraInfo, '/drone_camera_info', 10)
+      self.camera_info_pub = self.create_publisher(CameraInfo, '/drone_camera_info', 10)      
 
       # Subscribers
       self.joy_sub = self.create_subscription(Joy, "/joy", self.joy_callback, 10)
@@ -54,6 +56,9 @@ class Drone(Node):
       self.right_srv = self.create_service(Empty, "right", self.right_callback)
       self.left_srv = self.create_service(Empty, "left", self.left_callback)
       self.forward_srv = self.create_service(Empty, "forward", self.forward_callback)
+      self.backward_srv = self.create_service(Empty, "backward", self.backward_callback)
+      self.up_srv = self.create_service(Empty, "up", self.up_callback)
+      self.down_srv = self.create_service(Empty, "down", self.down_callback)
 
       # Clients
       self.takeoff_client = self.create_client(Empty, "takeoff", callback_group=self.cbgrp)
@@ -76,6 +81,18 @@ class Drone(Node):
       while not self.forward_client.wait_for_service(timeout_sec=1.0):
          self.get_logger().info("Forward service not available, waiting again...")
 
+      self.backward_client = self.create_client(Empty, "backward", callback_group=self.cbgrp)
+      while not self.backward_client.wait_for_service(timeout_sec=1.0):
+         self.get_logger().info("Backward service not available, waiting again...")
+
+      self.up_client = self.create_client(Empty, "up", callback_group=self.cbgrp)
+      while not self.up_client.wait_for_service(timeout_sec=1.0):
+         self.get_logger().info("Up service not available, waiting again...")
+
+      self.down_client = self.create_client(Empty, "down", callback_group=self.cbgrp)
+      while not self.down_client.wait_for_service(timeout_sec=1.0):
+         self.get_logger().info("Down service not available, waiting again...")
+
       # Initialize variables for Tello Drone
       self.drone = tello.Tello()
       self.drone.connect()
@@ -93,7 +110,7 @@ class Drone(Node):
       self.drone_tf2 = None
 
       # Timers
-      self.drone_camera_timer = self.create_timer(1/100, self.drone_image_callback)
+      self.drone_camera_timer = self.create_timer(1/2, self.drone_image_callback)
       self.drone_camera_info_timer = self.create_timer(1/100, self.drone_camera_info_callback)
       self.tf_timer = self.create_timer(1/100, self.tf_timer_callback)
 
@@ -186,13 +203,13 @@ class Drone(Node):
             self.move_state = DroneMovementState.LAND
 
          elif msg.axes[2] == -1:
-            # Move left
+            # Rotate left
             future_left = self.left_client.call_async(Empty.Request())
             future_left.add_done_callback(self.future_left_callback)
             self.move_state = DroneMovementState.LEFT
 
          elif msg.axes[5] == -1:
-            # Move right
+            # Rotate right
             future_right = self.right_client.call_async(Empty.Request())
             future_right.add_done_callback(self.future_right_callback)
             self.move_state = DroneMovementState.RIGHT
@@ -203,6 +220,23 @@ class Drone(Node):
             future_forward.add_done_callback(self.future_forward_callback)
             self.move_state = DroneMovementState.FORWARD
 
+         elif msg.buttons[0] == 1:
+            # Move backward
+            future_backward = self.backward_client.call_async(Empty.Request())
+            future_backward.add_done_callback(self.future_backward_callback)
+            self.move_state = DroneMovementState.BACKWARD
+
+         elif msg.buttons[5] == 1:
+            # Move up
+            future_up = self.up_client.call_async(Empty.Request())
+            future_up.add_done_callback(self.future_up_callback)
+            self.move_state = DroneMovementState.UP
+
+         elif msg.buttons[4] == 1:
+            # Move down
+            future_down = self.down_client.call_async(Empty.Request())
+            future_down.add_done_callback(self.future_down_callback)
+            self.move_state = DroneMovementState.DOWN
 
 
    def tf_timer_callback(self):
@@ -296,16 +330,14 @@ class Drone(Node):
    def right_callback(self, request, response):
       if self.state != State.DRONE:
          return response
-      self.get_logger().info("Drone is moving right")
-      # self.drone.move_right(40)
+      self.get_logger().info("Drone is rotating right")
       self.drone.rotate_clockwise(45)
       return response
    
    def left_callback(self, request, response):
       if self.state != State.DRONE:
          return response
-      self.get_logger().info("Drone is moving left")
-      # self.drone.move_left(40)
+      self.get_logger().info("Drone is rotating left")
       self.drone.rotate_counter_clockwise(45)
       return response
    
@@ -315,6 +347,33 @@ class Drone(Node):
       self.get_logger().info("Drone is moving forward")
       self.drone.move_forward(70)
       return response
+   
+   def backward_callback(self, request, response):
+      if self.state != State.DRONE:
+         return response
+      self.get_logger().info("Drone is moving backward")
+      self.drone.move_back(70)
+      return response
+   
+   def up_callback(self, request, response):
+      if self.state != State.DRONE:
+         return response
+      self.get_logger().info("Drone is moving up")
+      self.drone.move_up(50)
+      return response
+   
+   def down_callback(self, request, response):
+      if self.state != State.DRONE:
+         return response
+      self.get_logger().info("Drone is moving down")
+      self.drone.move_down(50)
+      return response
+   
+   
+   
+
+   
+
    
    ##### Future callbacks #####
 
@@ -340,6 +399,18 @@ class Drone(Node):
 
    def future_forward_callback(self, future_forward):
       self.get_logger().info(f"{future_forward.result()}")
+      self.move_state = DroneMovementState.WAITING
+
+   def future_backward_callback(self, future_backward):
+      self.get_logger().info(f"{future_backward.result()}")
+      self.move_state = DroneMovementState.WAITING
+   
+   def future_up_callback(self, future_up):
+      self.get_logger().info(f"{future_up.result()}")
+      self.move_state = DroneMovementState.WAITING
+
+   def future_down_callback(self, future_down):
+      self.get_logger().info(f"{future_down.result()}")
       self.move_state = DroneMovementState.WAITING
 
    
