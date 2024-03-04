@@ -110,8 +110,8 @@ class Drone(Node):
       self.drone_tf2 = None
 
       # Timers
-      self.drone_camera_timer = self.create_timer(1/2, self.drone_image_callback)
-      self.drone_camera_info_timer = self.create_timer(1/100, self.drone_camera_info_callback)
+      self.drone_camera_timer = self.create_timer(1/5, self.drone_image_callback)
+      # self.drone_camera_info_timer = self.create_timer(1/5, self.drone_camera_info_callback)
       self.tf_timer = self.create_timer(1/100, self.tf_timer_callback)
 
       # Parameters
@@ -143,7 +143,7 @@ class Drone(Node):
       self.tf_top_static_broadcaster = StaticTransformBroadcaster(self)
       self.tf_back_static_broadcaster = StaticTransformBroadcaster(self)
 
-      self.make_top_static_apriltag_transforms()
+      # self.make_top_static_apriltag_transforms()
       self.make_back_static_apriltag_transforms()
 
 
@@ -152,21 +152,18 @@ class Drone(Node):
       if self.state == State.DRONE:
          # Fetch image from drone
          image = self.drone.get_frame_read()
-         resized = cv2.resize(image.frame, (0,0), fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+         resized = cv2.resize(image.frame, (0,0), fx=1.0, fy=1.0, interpolation=cv2.INTER_AREA)
 
          # Publish image
          msg_img = Image()
          msg_img = self.bridge.cv2_to_imgmsg(resized, "rgb8")
          msg_img.header.stamp = self.get_clock().now().to_msg()
          msg_img.header.frame_id = "world"
-         self.drone_pub.publish(msg_img)
+         
+         # self.image_timestamp = msg_img.header.stamp
 
-         self.image_timestamp = msg_img.header.stamp
-
-   def drone_camera_info_callback(self):
-      if self.state == State.DRONE:
          msg = CameraInfo()
-         msg.header.stamp = self.image_timestamp
+         msg.header.stamp = self.get_clock().now().to_msg()
          msg.height = self.height
          msg.width = self.width
          msg.distortion_model = self.distortion_model
@@ -176,6 +173,22 @@ class Drone(Node):
          msg.p = self.projection_matrix
 
          self.camera_info_pub.publish(msg)
+
+         self.drone_pub.publish(msg_img)
+
+   # def drone_camera_info_callback(self):
+   #    if self.state == State.DRONE:
+   #       msg = CameraInfo()
+   #       msg.header.stamp = self.image_timestamp
+   #       msg.height = self.height
+   #       msg.width = self.width
+   #       msg.distortion_model = self.distortion_model
+   #       msg.d = self.distortion_coefficients
+   #       msg.k = self.camera_matrix
+   #       msg.r = self.rectification_matrix
+   #       msg.p = self.projection_matrix
+
+   #       self.camera_info_pub.publish(msg)
 
    def joy_callback(self, msg):
       if msg.buttons[10] == 1 and self.allow_switch_state_flag == True:
@@ -243,21 +256,21 @@ class Drone(Node):
       self.listen_to_back_apriltag()
       self.broadcast_drone()
 
-   def make_top_static_apriltag_transforms(self): # 5 is top
+   # def make_top_static_apriltag_transforms(self): # 5 is top
 
-      # Static transformation from chassis to the top april tag
-      top_tag_transform = TransformStamped()
-      top_tag_transform.header.stamp = self.get_clock().now().to_msg()
-      top_tag_transform.header.frame_id = "chassis"
-      top_tag_transform.child_frame_id = "top_tag" 
-      top_tag_transform.transform.translation.x = 0.26
-      top_tag_transform.transform.translation.y = 0.0
-      top_tag_transform.transform.translation.z = 0.20
-      q = quaternion_from_euler(0.0, 0.0, 0.0)
-      top_tag_transform.transform.rotation.x = q[0]
-      top_tag_transform.transform.rotation.y = q[1]
-      top_tag_transform.transform.rotation.z = q[2]
-      top_tag_transform.transform.rotation.w = q[3]
+   #    # Static transformation from chassis to the top april tag
+   #    top_tag_transform = TransformStamped()
+   #    top_tag_transform.header.stamp = self.get_clock().now().to_msg()
+   #    top_tag_transform.header.frame_id = "chassis"
+   #    top_tag_transform.child_frame_id = "top_tag" 
+   #    top_tag_transform.transform.translation.x = 0.26
+   #    top_tag_transform.transform.translation.y = 0.0
+   #    top_tag_transform.transform.translation.z = 0.20
+   #    q = quaternion_from_euler(0.0, 0.0, 0.0)
+   #    top_tag_transform.transform.rotation.x = q[0]
+   #    top_tag_transform.transform.rotation.y = q[1]
+   #    top_tag_transform.transform.rotation.z = q[2]
+   #    top_tag_transform.transform.rotation.w = q[3]
 
       # self.tf_top_static_broadcaster.sendTransform(top_tag_transform)
 
@@ -268,16 +281,16 @@ class Drone(Node):
       back_tag_transform.header.stamp = self.get_clock().now().to_msg()
       back_tag_transform.header.frame_id = "chassis"
       back_tag_transform.child_frame_id = "back_tag"
-      back_tag_transform.transform.translation.x = 0.50
+      back_tag_transform.transform.translation.x = 0.0
       back_tag_transform.transform.translation.y = 0.0
-      back_tag_transform.transform.translation.z = 0.17
+      back_tag_transform.transform.translation.z = 0.0
       q = quaternion_from_euler(0.0, 0.0, 0.0)
       back_tag_transform.transform.rotation.x = q[0]
       back_tag_transform.transform.rotation.y = q[1]
       back_tag_transform.transform.rotation.z = q[2]
       back_tag_transform.transform.rotation.w = q[3]
 
-      # self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
+      self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
 
       # log the position of the back tag
 
@@ -288,7 +301,7 @@ class Drone(Node):
          # self.get_logger().info(f"No transform found: {e}")
          return
       
-   def broadcast_drone(self):
+   def broadcast_drone(self): # Essentially just the publishing the back_tag transform
       if self.drone_tf:
          self.drone_tf2 = TransformStamped()
          self.drone_tf2.header.stamp = self.get_clock().now().to_msg()
@@ -297,7 +310,7 @@ class Drone(Node):
 
          self.drone_tf2.transform.translation.x = self.drone_tf.transform.translation.z
          self.drone_tf2.transform.translation.y = self.drone_tf.transform.translation.x
-         self.drone_tf2.transform.translation.z = -self.drone_tf.transform.translation.y
+         self.drone_tf2.transform.translation.z = self.drone_tf.transform.translation.y
 
          self.drone_tf2.transform.rotation.x = self.drone_tf.transform.rotation.x
          self.drone_tf2.transform.rotation.y = self.drone_tf.transform.rotation.y
