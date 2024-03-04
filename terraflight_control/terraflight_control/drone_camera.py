@@ -7,6 +7,10 @@ from cv_bridge import CvBridge
 import cv2
 from enum import Enum, auto
 from sensor_msgs.msg import CameraInfo
+from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
+from geometry_msgs.msg import TransformStamped
+import math
+import numpy as np
 
 class State(Enum):
    ROBOT = auto()
@@ -24,10 +28,10 @@ class Drone_Camera(Node):
       self.joy_sub = self.create_subscription(Joy, "/joy", self.joy_callback, 10)
 
       # Initialize variables for Tello Drone
-      self.drone = tello.Tello()
-      self.drone.connect()
-      self.drone.streamon()
-      self.bridge = CvBridge()
+      # self.drone = tello.Tello()
+      # self.drone.connect()
+      # self.drone.streamon()
+      # self.bridge = CvBridge()
       self.image_timestamp = self.get_clock().now().to_msg()
 
       # Timers
@@ -57,6 +61,14 @@ class Drone_Camera(Node):
 
       self.allow_switch_state_flag = True
 
+      # Static transform
+      self.tf_top_static_broadcaster = StaticTransformBroadcaster(self)
+      self.tf_back_static_broadcaster = StaticTransformBroadcaster(self)
+
+      self.make_top_static_apriltag_transforms()
+      self.make_back_static_apriltag_transforms()
+
+
    def drone_image_callback(self):      
 
       if self.state == State.DRONE:
@@ -64,7 +76,7 @@ class Drone_Camera(Node):
          image = self.drone.get_frame_read()
          resized = cv2.resize(image.frame, (0,0), fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
 
-         # Publish image (cite Courtney)
+         # Publish image
          msg_img = Image()
          msg_img = self.bridge.cv2_to_imgmsg(resized, "rgb8")
          msg_img.header.stamp = self.get_clock().now().to_msg()
@@ -98,9 +110,65 @@ class Drone_Camera(Node):
 
       self.get_logger().info(f"State: {self.state}")
 
+   def make_top_static_apriltag_transforms(self):
+
+      # Static transformation from chassis to the top april tag
+      top_tag_transform = TransformStamped()
+      top_tag_transform.header.stamp = self.get_clock().now().to_msg()
+      top_tag_transform.header.frame_id = "chassis"
+      top_tag_transform.child_frame_id = "top_tag"
+      top_tag_transform.transform.translation.x = 0.26
+      top_tag_transform.transform.translation.y = 0.0
+      top_tag_transform.transform.translation.z = 0.20
+      q = quaternion_from_euler(0.0, 0.0, 0.0)
+      top_tag_transform.transform.rotation.x = q[0]
+      top_tag_transform.transform.rotation.y = q[1]
+      top_tag_transform.transform.rotation.z = q[2]
+      top_tag_transform.transform.rotation.w = q[3]
+
+      self.tf_top_static_broadcaster.sendTransform(top_tag_transform)
+
+   def make_back_static_apriltag_transforms(self):
+
+      # Static transformation from chassis to the back april tag
+      back_tag_transform = TransformStamped()
+      back_tag_transform.header.stamp = self.get_clock().now().to_msg()
+      back_tag_transform.header.frame_id = "chassis"
+      back_tag_transform.child_frame_id = "back_tag"
+      back_tag_transform.transform.translation.x = 0.50
+      back_tag_transform.transform.translation.y = 0.0
+      back_tag_transform.transform.translation.z = 0.17
+      q = quaternion_from_euler(0.0, 1.57, 0.0)
+      back_tag_transform.transform.rotation.x = q[0]
+      back_tag_transform.transform.rotation.y = q[1]
+      back_tag_transform.transform.rotation.z = q[2]
+      back_tag_transform.transform.rotation.w = q[3]
+
+      self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
 
 
-      
+def quaternion_from_euler(ai, aj, ak):
+    ai /= 2.0
+    aj /= 2.0
+    ak /= 2.0
+    ci = math.cos(ai)
+    si = math.sin(ai)
+    cj = math.cos(aj)
+    sj = math.sin(aj)
+    ck = math.cos(ak)
+    sk = math.sin(ak)
+    cc = ci*ck
+    cs = ci*sk
+    sc = si*ck
+    ss = si*sk
+
+    q = np.empty((4, ))
+    q[0] = cj*sc - sj*cs
+    q[1] = cj*ss + sj*cc
+    q[2] = cj*cs - sj*sc
+    q[3] = cj*cc + sj*ss
+
+    return q
 
 def drone_camera_entry(args=None):
    rclpy.init(args=args)
