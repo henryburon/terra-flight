@@ -36,6 +36,7 @@ class DroneMovementState(Enum):
    BACKWARD = auto()
    UP = auto()
    DOWN = auto()
+   AUTO_LAND = auto()
 
 class Drone(Node):
    def __init__(self):
@@ -59,6 +60,7 @@ class Drone(Node):
       self.backward_srv = self.create_service(Empty, "backward", self.backward_callback)
       self.up_srv = self.create_service(Empty, "up", self.up_callback)
       self.down_srv = self.create_service(Empty, "down", self.down_callback)
+      self.auto_land_srv = self.create_service(Empty, "auto_land", self.auto_land_callback)
 
       # Clients
       self.takeoff_client = self.create_client(Empty, "takeoff", callback_group=self.cbgrp)
@@ -92,6 +94,10 @@ class Drone(Node):
       self.down_client = self.create_client(Empty, "down", callback_group=self.cbgrp)
       while not self.down_client.wait_for_service(timeout_sec=1.0):
          self.get_logger().info("Down service not available, waiting again...")
+
+      self.auto_land_client = self.create_client(Empty, "auto_land", callback_group=self.cbgrp)
+      while not self.auto_land_client.wait_for_service(timeout_sec=1.0):
+         self.get_logger().info("Auto land service not available, waiting again...")
 
       # Initialize variables for Tello Drone
       self.drone = tello.Tello()
@@ -237,6 +243,12 @@ class Drone(Node):
             future_down.add_done_callback(self.future_down_callback)
             self.move_state = DroneMovementState.DOWN
 
+         elif msg.buttons[11] == 1 and msg.buttons[12] == 1:
+            # Auto land
+            future_auto_land = self.auto_land_client.call_async(Empty.Request())
+            future_auto_land.add_done_callback(self.future_auto_land_callback)
+            self.move_state = DroneMovementState.AUTO_LAND
+
 
    def tf_timer_callback(self):
       self.listen_to_back_apriltag()
@@ -307,7 +319,9 @@ class Drone(Node):
 
          self.tf_broadcaster.sendTransform(self.drone_tf2)
 
-         
+         # when  the drone is to the left, the y value is logged as negative.
+         # when the drone is to the right, the y value is logged as positive
+         # When in the apriltag is in the center of the frame, the y value, ideally, should be logged as positive
          # Logs the distance from the camera to the back april tag (tag 6)
          self.get_logger().info(f"[2]: {self.drone_tf2.transform.translation.x, self.drone_tf2.transform.translation.y, self.drone_tf2.transform.translation.z}")
       else:
@@ -372,6 +386,17 @@ class Drone(Node):
       self.drone.move_down(50)
       return response
    
+   def auto_land_callback(self, request, response):
+      if self.state != State.DRONE:
+         return response
+      self.get_logger().info("Drone is auto landing")
+      self.drone.move_up(30)
+      x = int(10 + self.drone_tf2.transform.translation.x * 100)
+      self.drone.move_left(20) # it drifts right, so this offset is necessary (at least for now)
+      self.drone.move_forward(x)
+      self.drone.land()
+      return response
+   
    
    
 
@@ -414,6 +439,10 @@ class Drone(Node):
 
    def future_down_callback(self, future_down):
       self.get_logger().info(f"{future_down.result()}")
+      self.move_state = DroneMovementState.WAITING
+
+   def future_auto_land_callback(self, future_auto_land):
+      self.get_logger().info(f"{future_auto_land.result()}")
       self.move_state = DroneMovementState.WAITING
 
    
