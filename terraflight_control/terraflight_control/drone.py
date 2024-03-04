@@ -144,7 +144,7 @@ class Drone(Node):
       self.tf_back_static_broadcaster = StaticTransformBroadcaster(self)
 
       # self.make_top_static_apriltag_transforms()
-      self.make_back_static_apriltag_transforms()
+      # self.make_back_static_apriltag_transforms()
 
 
    def drone_image_callback(self):      
@@ -274,29 +274,31 @@ class Drone(Node):
 
       # self.tf_top_static_broadcaster.sendTransform(top_tag_transform)
 
-   def make_back_static_apriltag_transforms(self): # 6 is back
+   # def make_back_static_apriltag_transforms(self): # 6 is back
 
-      # Static transformation from chassis to the back april tag
-      back_tag_transform = TransformStamped()
-      back_tag_transform.header.stamp = self.get_clock().now().to_msg()
-      back_tag_transform.header.frame_id = "chassis"
-      back_tag_transform.child_frame_id = "back_tag"
-      back_tag_transform.transform.translation.x = 0.0
-      back_tag_transform.transform.translation.y = 0.0
-      back_tag_transform.transform.translation.z = 0.0
-      q = quaternion_from_euler(0.0, 0.0, 0.0)
-      back_tag_transform.transform.rotation.x = q[0]
-      back_tag_transform.transform.rotation.y = q[1]
-      back_tag_transform.transform.rotation.z = q[2]
-      back_tag_transform.transform.rotation.w = q[3]
+   #    # Static transformation from chassis to the back april tag
+   #    back_tag_transform = TransformStamped()
+   #    back_tag_transform.header.stamp = self.get_clock().now().to_msg()
+   #    back_tag_transform.header.frame_id = "chassis"
+   #    back_tag_transform.child_frame_id = "back_tag"
+   #    back_tag_transform.transform.translation.x = 0.0
+   #    back_tag_transform.transform.translation.y = 0.0
+   #    back_tag_transform.transform.translation.z = 0.0
+   #    q = quaternion_from_euler(0.0, 0.0, 0.0)
+   #    back_tag_transform.transform.rotation.x = q[0]
+   #    back_tag_transform.transform.rotation.y = q[1]
+   #    back_tag_transform.transform.rotation.z = q[2]
+   #    back_tag_transform.transform.rotation.w = q[3]
 
-      self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
+   #    self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
 
       # log the position of the back tag
 
    def listen_to_back_apriltag(self):
       try:
          self.drone_tf = self.tf_buffer.lookup_transform("chassis", "back_tag", rclpy.time.Time())
+         # log the x, y, z
+         self.get_logger().info(f"[1]: {self.drone_tf.transform.translation.x, self.drone_tf.transform.translation.y, self.drone_tf.transform.translation.z}")
       except TransformException as e:
          # self.get_logger().info(f"No transform found: {e}")
          return
