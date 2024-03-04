@@ -151,7 +151,9 @@ class Drone(Node):
 
       # self.make_top_static_apriltag_transforms()
       # self.make_back_static_apriltag_transforms()
-
+      self.temp_x = 0.0
+      self.temp_y = 0.0
+      self.temp_z = 0.0
 
    def drone_image_callback(self):      
 
@@ -249,54 +251,13 @@ class Drone(Node):
             future_auto_land.add_done_callback(self.future_auto_land_callback)
             self.move_state = DroneMovementState.AUTO_LAND
 
-
    def tf_timer_callback(self):
       self.listen_to_back_apriltag()
       self.broadcast_drone()
 
-   # def make_top_static_apriltag_transforms(self): # 5 is top
-
-   #    # Static transformation from chassis to the top april tag
-   #    top_tag_transform = TransformStamped()
-   #    top_tag_transform.header.stamp = self.get_clock().now().to_msg()
-   #    top_tag_transform.header.frame_id = "chassis"
-   #    top_tag_transform.child_frame_id = "top_tag" 
-   #    top_tag_transform.transform.translation.x = 0.26
-   #    top_tag_transform.transform.translation.y = 0.0
-   #    top_tag_transform.transform.translation.z = 0.20
-   #    q = quaternion_from_euler(0.0, 0.0, 0.0)
-   #    top_tag_transform.transform.rotation.x = q[0]
-   #    top_tag_transform.transform.rotation.y = q[1]
-   #    top_tag_transform.transform.rotation.z = q[2]
-   #    top_tag_transform.transform.rotation.w = q[3]
-
-      # self.tf_top_static_broadcaster.sendTransform(top_tag_transform)
-
-   # def make_back_static_apriltag_transforms(self): # 6 is back
-
-   #    # Static transformation from chassis to the back april tag
-   #    back_tag_transform = TransformStamped()
-   #    back_tag_transform.header.stamp = self.get_clock().now().to_msg()
-   #    back_tag_transform.header.frame_id = "chassis"
-   #    back_tag_transform.child_frame_id = "back_tag"
-   #    back_tag_transform.transform.translation.x = 0.0
-   #    back_tag_transform.transform.translation.y = 0.0
-   #    back_tag_transform.transform.translation.z = 0.0
-   #    q = quaternion_from_euler(0.0, 0.0, 0.0)
-   #    back_tag_transform.transform.rotation.x = q[0]
-   #    back_tag_transform.transform.rotation.y = q[1]
-   #    back_tag_transform.transform.rotation.z = q[2]
-   #    back_tag_transform.transform.rotation.w = q[3]
-
-   #    self.tf_back_static_broadcaster.sendTransform(back_tag_transform)
-
-      # log the position of the back tag
-
    def listen_to_back_apriltag(self):
       try:
          self.drone_tf = self.tf_buffer.lookup_transform("chassis", "back_tag", rclpy.time.Time())
-         # log the x, y, z
-         # self.get_logger().info(f"[1]: {self.drone_tf.transform.translation.x, self.drone_tf.transform.translation.y, self.drone_tf.transform.translation.z}")
       except TransformException as e:
          # self.get_logger().info(f"No transform found: {e}")
          return
@@ -319,16 +280,20 @@ class Drone(Node):
 
          self.tf_broadcaster.sendTransform(self.drone_tf2)
 
-         # when  the drone is to the left, the y value is logged as negative.
-         # when the drone is to the right, the y value is logged as positive
-         # When in the apriltag is in the center of the frame, the y value, ideally, should be logged as positive
-         # Logs the distance from the camera to the back april tag (tag 6)
-         self.get_logger().info(f"[2]: {self.drone_tf2.transform.translation.x, self.drone_tf2.transform.translation.y, self.drone_tf2.transform.translation.z}")
+         if (self.temp_x != self.drone_tf2.transform.translation.x or 
+            self.temp_y != self.drone_tf2.transform.translation.y or 
+            self.temp_z != self.drone_tf2.transform.translation.z):
+               self.get_logger().info(f"Drone at: {self.drone_tf2.transform.translation.x, self.drone_tf2.transform.translation.y, self.drone_tf2.transform.translation.z}")
+
+         self.temp_x = self.drone_tf2.transform.translation.x
+         self.temp_y = self.drone_tf2.transform.translation.y
+         self.temp_z = self.drone_tf2.transform.translation.z
+
+
+
       else:
          # self.get_logger().info("No drone transform to broadcast")
           return
-      
-   
       
    def takeoff_callback(self, request, response):
       if self.state != State.DRONE:
@@ -386,28 +351,33 @@ class Drone(Node):
       self.drone.move_down(50)
       return response
    
+   # This only works when the drone is behind the robot (i.e. can see the back tag)
    def auto_land_callback(self, request, response):
       if self.state != State.DRONE:
          return response
       self.get_logger().info("Drone is auto landing")
-      self.drone.move_up(30)
+
+      self.drone.move_up(30) # Ensure drone is above platform
+
+      # Move forward to the platform
       x = int(10 + self.drone_tf2.transform.translation.x * 100)
-      self.drone.move_left(20) # it drifts right, so this offset is necessary (at least for now)
+      self.drone.move_left(20) # accounting for the rightward drift (may be specific to my Tello drone, so adjust as needed)
       self.drone.move_forward(x)
+
+      # Move left/right towards the platform
+      if self.drone_tf2.transform.translation.x < 0: # When the drone is to the left, the y value is logged as negative (so, move right)
+         # Move right
+         y = abs(int(self.drone_tf2.transform.translation.y * 100))
+         self.drone.move_right(y)
+      else:
+         # Move left
+         y = abs(int(self.drone_tf2.transform.translation.y * 100))
+         self.drone.move_left(y)
+      
       self.drone.land()
       return response
    
-   
-   
-
-   
-
-   
    ##### Future callbacks #####
-
-   #implement up and down
-   #slow down the video feed or resolution significantly
-
 
    def future_takeoff_callback(self, future_takeoff):
       self.get_logger().info(f"{future_takeoff.result()}")
@@ -444,8 +414,6 @@ class Drone(Node):
    def future_auto_land_callback(self, future_auto_land):
       self.get_logger().info(f"{future_auto_land.result()}")
       self.move_state = DroneMovementState.WAITING
-
-   
 
 
 def quaternion_from_euler(ai, aj, ak):
