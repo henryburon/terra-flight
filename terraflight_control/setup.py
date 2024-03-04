@@ -27,9 +27,7 @@ setup(
             'base_station = terraflight_control.base_station:base_station_entry',
             'robot_control = terraflight_control.robot_control:robot_control_entry',
             'robot_camera = terraflight_control.robot_camera:robot_camera_entry',
-            'drone_camera = terraflight_control.drone_camera:drone_camera_entry',
-            'odometry = terraflight_control.odometry:odometry_entry',
-            'drone_control = terraflight_control.drone_control:drone_control_entry'
-        ],
+            'drone = terraflight_control.drone:drone_entry',
+            'odometry = terraflight_control.odometry:odometry_entry',        ],
     },
 )
