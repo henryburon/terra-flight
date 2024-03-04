@@ -110,7 +110,7 @@ class Drone(Node):
       self.drone_tf2 = None
 
       # Timers
-      self.drone_camera_timer = self.create_timer(1/5, self.drone_image_callback)
+      self.drone_camera_timer = self.create_timer(1/2, self.drone_image_callback)
       # self.drone_camera_info_timer = self.create_timer(1/5, self.drone_camera_info_callback)
       self.tf_timer = self.create_timer(1/100, self.tf_timer_callback)
 
@@ -160,10 +160,10 @@ class Drone(Node):
          msg_img.header.stamp = self.get_clock().now().to_msg()
          msg_img.header.frame_id = "world"
          
-         # self.image_timestamp = msg_img.header.stamp
+         self.image_timestamp = msg_img.header.stamp
 
          msg = CameraInfo()
-         msg.header.stamp = self.get_clock().now().to_msg()
+         msg.header.stamp = self.image_timestamp # These two messages must maintain the same time stamp, or the synchronization does not work.
          msg.height = self.height
          msg.width = self.width
          msg.distortion_model = self.distortion_model
@@ -175,20 +175,6 @@ class Drone(Node):
          self.camera_info_pub.publish(msg)
 
          self.drone_pub.publish(msg_img)
-
-   # def drone_camera_info_callback(self):
-   #    if self.state == State.DRONE:
-   #       msg = CameraInfo()
-   #       msg.header.stamp = self.image_timestamp
-   #       msg.height = self.height
-   #       msg.width = self.width
-   #       msg.distortion_model = self.distortion_model
-   #       msg.d = self.distortion_coefficients
-   #       msg.k = self.camera_matrix
-   #       msg.r = self.rectification_matrix
-   #       msg.p = self.projection_matrix
-
-   #       self.camera_info_pub.publish(msg)
 
    def joy_callback(self, msg):
       if msg.buttons[10] == 1 and self.allow_switch_state_flag == True:
@@ -298,7 +284,7 @@ class Drone(Node):
       try:
          self.drone_tf = self.tf_buffer.lookup_transform("chassis", "back_tag", rclpy.time.Time())
          # log the x, y, z
-         self.get_logger().info(f"[1]: {self.drone_tf.transform.translation.x, self.drone_tf.transform.translation.y, self.drone_tf.transform.translation.z}")
+         # self.get_logger().info(f"[1]: {self.drone_tf.transform.translation.x, self.drone_tf.transform.translation.y, self.drone_tf.transform.translation.z}")
       except TransformException as e:
          # self.get_logger().info(f"No transform found: {e}")
          return
@@ -311,7 +297,7 @@ class Drone(Node):
          self.drone_tf2.child_frame_id = "drone"
 
          self.drone_tf2.transform.translation.x = self.drone_tf.transform.translation.z
-         self.drone_tf2.transform.translation.y = self.drone_tf.transform.translation.x
+         self.drone_tf2.transform.translation.y = self.drone_tf.transform.translation.x - 0.25
          self.drone_tf2.transform.translation.z = self.drone_tf.transform.translation.y
 
          self.drone_tf2.transform.rotation.x = self.drone_tf.transform.rotation.x
@@ -321,7 +307,9 @@ class Drone(Node):
 
          self.tf_broadcaster.sendTransform(self.drone_tf2)
 
-         # self.get_logger().info(f"[2]: {self.drone_tf2.transform.translation.x, self.drone_tf2.transform.translation.y, self.drone_tf2.transform.translation.z}")
+         
+         # Logs the distance from the camera to the back april tag (tag 6)
+         self.get_logger().info(f"[2]: {self.drone_tf2.transform.translation.x, self.drone_tf2.transform.translation.y, self.drone_tf2.transform.translation.z}")
       else:
          # self.get_logger().info("No drone transform to broadcast")
           return
