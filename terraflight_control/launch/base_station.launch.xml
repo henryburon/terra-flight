@@ -13,8 +13,10 @@
         <param from="$(find-pkg-share terraflight_control)/tags.yaml"/>
         <remap from="image_rect" to="drone_camera"/>
         <remap from="camera_info" to="drone_camera_info"/>
-
     </node>
+
+    <include file="$(find-pkg-share slam_toolbox)/launch/online_async_launch.py"/>
+
 
 
 </launch>

@@ -12,6 +12,7 @@ import serial
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
+from nav_msgs.msg import Odometry
 
 
 
@@ -78,7 +79,10 @@ class Odometry(Node):
         self.update_robot_config_callback = self.create_timer(0.01, self.update_robot_config_callback)  # 100 Hz
         self.robot_state_timer = self.create_timer(0.01, self.robot_state_callback)  # 100 Hz
 
-        # # Subscribers
+        # Publishers
+        self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
+
+        # Subscribers
         self.robot_motion_sub = self.create_subscription(
             String,
             'robot_motion',
@@ -276,6 +280,23 @@ class Odometry(Node):
             t.transform.rotation.w = q[3]
 
             self.tf_broadcaster.sendTransform(t)
+
+            # Publish odom message
+            odom = Odometry()
+            odom.header.stamp = self.get_clock().now().to_msg()
+            odom.header.frame_id = "odom"
+            odom.child_frame_id = "base_footprint"
+            odom.pose.pose.position.x = self.x_test
+            odom.pose.pose.position.y = self.y_test
+            odom.pose.pose.position.z = 0.0
+            odom.pose.pose.orientation.x = q[0]
+            odom.pose.pose.orientation.y = q[1]
+            odom.pose.pose.orientation.z = q[2]
+            odom.pose.pose.orientation.w = q[3]
+
+            self.odom_pub.publish(odom)
+
+
 
 
 def odometry_entry(args=None):
