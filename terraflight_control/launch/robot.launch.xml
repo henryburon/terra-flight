@@ -5,6 +5,6 @@
     <node pkg="terraflight_control" exec="odometry"/>
     
     <!-- include LiDAR launch file -->
-    <include file="$(find-pkg-share sllidar_ros2)/launch/view_sllidar.launch.py"/>
+    <include file="$(find-pkg-share sllidar_ros2)/launch/view_sllidar_c1_launch.py"/>
 
 </launch>
