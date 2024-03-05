@@ -132,7 +132,9 @@ Visualization Manager:
           Value: false
         laser:
           Value: true
-        world:
+        map:
+          Value: true
+        odom:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -140,20 +142,21 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          base_footprint:
-            base_link:
-              chassis:
-                back_left_wheel:
+        map:
+          odom:
+            base_footprint:
+              base_link:
+                chassis:
+                  back_left_wheel:
+                    {}
+                  back_right_wheel:
+                    {}
+                  front_left_wheel:
+                    {}
+                  front_right_wheel:
+                    {}
+                laser:
                   {}
-                back_right_wheel:
-                  {}
-                front_left_wheel:
-                  {}
-                front_right_wheel:
-                  {}
-              laser:
-                {}
       Update Interval: 0
       Value: true
     - Class: rviz_default_plugins/Image
@@ -244,7 +247,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: world
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
