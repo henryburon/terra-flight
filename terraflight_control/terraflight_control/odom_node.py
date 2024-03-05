@@ -282,8 +282,6 @@ class OdomNode(Node):
             self.tf_broadcaster.sendTransform(t)
 
             # Publish odom message
-            self.get_logger().info(f"starting odom pub")
-            self.get_logger().info(f"X: {self.x_test}, Y: {self.y_test}, Theta: {self.theta_test}")
             odom = Odometry()
             odom.header.stamp = self.get_clock().now().to_msg()
             odom.header.frame_id = "odom"
@@ -298,7 +296,6 @@ class OdomNode(Node):
 
             self.odom_pub.publish(odom)
 
-            self.get_logger().info(f"through odom pub")
 
 
 
