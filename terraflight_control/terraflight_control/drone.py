@@ -166,7 +166,7 @@ class Drone(Node):
          msg_img = Image()
          msg_img = self.bridge.cv2_to_imgmsg(resized, "rgb8")
          msg_img.header.stamp = self.get_clock().now().to_msg()
-         msg_img.header.frame_id = "world"
+         msg_img.header.frame_id = "map"
          
          self.image_timestamp = msg_img.header.stamp
 

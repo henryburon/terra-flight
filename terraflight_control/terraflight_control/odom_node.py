@@ -207,7 +207,7 @@ class OdomNode(Node):
             # update robot configuration
             t = TransformStamped()
             t.header.stamp = self.get_clock().now().to_msg()
-            t.header.frame_id = "world"
+            t.header.frame_id = "odom"
             t.child_frame_id = "base_footprint"
             t.transform.translation.x = self.robot_config["x"]
             t.transform.translation.y = self.robot_config["y"]
@@ -248,7 +248,7 @@ class OdomNode(Node):
             elif self.robot_motion in ["left", "right"]:
 
                 try:
-                    robot_transform = self.tf_buffer.lookup_transform("world", "base_footprint", rclpy.time.Time())
+                    robot_transform = self.tf_buffer.lookup_transform("odom", "base_footprint", rclpy.time.Time())
                     self.offset_x = robot_transform.transform.translation.x
                     self.offset_y = robot_transform.transform.translation.y
                     rot_x = robot_transform.transform.rotation.x
@@ -268,7 +268,7 @@ class OdomNode(Node):
 
             t = TransformStamped()
             t.header.stamp = self.get_clock().now().to_msg()
-            t.header.frame_id = "world"
+            t.header.frame_id = "odom"
             t.child_frame_id = "base_footprint"
             t.transform.translation.x = self.x_test
             t.transform.translation.y = self.y_test
