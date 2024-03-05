@@ -12,6 +12,7 @@ setup(
         ('share/' + package_name, ['package.xml',
                                    'launch/base_station.launch.xml',
                                    'launch/robot.launch.xml',
+                                   'launch/slam_robot.launch.xml',
                                    'config/tags.yaml',
                                    'config/tello_camera_config.yaml']),
     ],
