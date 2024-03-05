@@ -15,8 +15,8 @@ setup(
                                    'launch/robot.launch.xml',
                                    'config/tags.yaml',
                                    'config/tello_camera_config.yaml']),
-        ('share/' + lidar_package_name, ['package.xml',
-                                    'launch/view_sllidar_c1_launch.py'])
+        # ('share/' + lidar_package_name, [
+        #                             'launch/view_sllidar_c1_launch.py'])
     ],
     install_requires=['setuptools'],
     zip_safe=True,
