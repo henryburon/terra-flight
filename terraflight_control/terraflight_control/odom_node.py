@@ -39,9 +39,9 @@ def quaternion_from_euler(ai, aj, ak):
 
         return q
 
-class Odometry(Node):
+class OdomNode(Node):
     def __init__(self):
-        super().__init__("odometry")
+        super().__init__("odom_node")
 
         self.mode = "test" # "test" or "encoders"
 
@@ -303,8 +303,8 @@ class Odometry(Node):
 
 
 
-def odometry_entry(args=None):
+def odom_node_entry(args=None):
     rclpy.init(args=args)
-    node = Odometry()
+    node = OdomNode()
     rclpy.spin(node)
     rclpy.shutdown()

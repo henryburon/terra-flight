@@ -2,7 +2,7 @@
 
     <node pkg="terraflight_control" exec="robot_control"/>
     <node pkg="terraflight_control" exec="robot_camera"/>
-    <node pkg="terraflight_control" exec="odometry"/>
+    <node pkg="terraflight_control" exec="odom_node"/>
     
     <!-- include LiDAR launch file -->
     <include file="$(find-pkg-share sllidar_ros2)/launch/view_sllidar_c1_launch.py"/>

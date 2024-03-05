@@ -29,6 +29,6 @@ setup(
             'robot_control = terraflight_control.robot_control:robot_control_entry',
             'robot_camera = terraflight_control.robot_camera:robot_camera_entry',
             'drone = terraflight_control.drone:drone_entry',
-            'odometry = terraflight_control.odometry:odometry_entry',        ],
+            'odom_node = terraflight_control.odom_node:odom_node_entry',        ],
     },
 )
