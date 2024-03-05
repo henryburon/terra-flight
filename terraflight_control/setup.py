@@ -1,7 +1,6 @@
 from setuptools import find_packages, setup
 
 package_name = 'terraflight_control'
-lidar_package_name = 'sllidar_ros2'
 
 setup(
     name=package_name,
@@ -15,8 +14,6 @@ setup(
                                    'launch/robot.launch.xml',
                                    'config/tags.yaml',
                                    'config/tello_camera_config.yaml']),
-        # ('share/' + lidar_package_name, [
-        #                             'launch/view_sllidar_c1_launch.py'])
     ],
     install_requires=['setuptools'],
     zip_safe=True,
