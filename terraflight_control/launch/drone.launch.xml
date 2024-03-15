@@ -18,5 +18,8 @@
       <remap from="camera_info" to="drone_camera_info"/>
    </node>
 
+   <!-- Publishing so the apriltags have a reference -->
+   <!-- <node pkg="tf2_ros" exec="static_transform_publisher" name="chassis_frame" args="0 0 0 0 0 0 base_link chassis 100"/> -->
+
 
 </launch>

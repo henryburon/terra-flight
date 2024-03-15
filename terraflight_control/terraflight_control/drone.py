@@ -17,6 +17,10 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from tf2_ros import TransformBroadcaster
 from std_srvs.srv import Empty
+from geometry_msgs.msg import TransformStamped
+from std_msgs.msg import Header
+from builtin_interfaces.msg import Time
+
 
 class State(Enum):
    ROBOT = auto()
@@ -109,11 +113,13 @@ class Drone(Node):
       # TF Listener
       self.tf_buffer = Buffer()
       self.tf_listener = TransformListener(self.tf_buffer, self)
-      self.drone_tf = None
+      # self.back_tag = None
+      # self.left_tag = None
+      # self.right_tag = None
 
       # TF Broadcaster
       self.tf_broadcaster = TransformBroadcaster(self)
-      self.drone_tf2 = None
+      self.drone_tf = None
 
       # Timers
       self.drone_camera_timer = self.create_timer(1/2, self.drone_image_callback)
@@ -152,6 +158,21 @@ class Drone(Node):
       self.temp_y = 0.0
       self.temp_z = 0.0
 
+      self.recent_tag_x = None
+      self.recent_tag_y = None
+      self.recent_tag_z = None
+
+      self.back_tag = TransformStamped()
+      self.back_tag.header.stamp = Time()
+
+      self.right_tag = TransformStamped()
+      self.right_tag.header.stamp = Time()
+
+      self.left_tag = TransformStamped()
+      self.left_tag.header.stamp = Time()
+
+      self.time0 = Time(sec=0)
+
    def drone_image_callback(self):      
 
       if self.state == State.DRONE:
@@ -159,6 +180,10 @@ class Drone(Node):
          image = self.drone.get_frame_read()
          resized = cv2.resize(image.frame, (0,0), fx=1.0, fy=1.0, interpolation=cv2.INTER_AREA)
 
+         # if self.recent_tag_x != None and self.recent_tag_y != None and self.recent_tag_z != None:
+
+
+         # else:
          text = "Rover not in view"
          font = cv2.FONT_HERSHEY_SIMPLEX
          font_scale = 2
@@ -267,42 +292,145 @@ class Drone(Node):
             self.move_state = DroneMovementState.AUTO_LAND
 
    def tf_timer_callback(self):
-      self.listen_to_back_apriltag()
+      
+      self.locate_back()
+      self.locate_right()
+      self.locate_left()
+
+      self.get_recent_tag()
+
       self.broadcast_drone()
 
-   def listen_to_back_apriltag(self):
+   def locate_back(self):
       try:
-         self.drone_tf = self.tf_buffer.lookup_transform("chassis", "back_tag", rclpy.time.Time())
+         self.back_tag = self.tf_buffer.lookup_transform("map", "back_tag", rclpy.time.Time())
+         # self.get_logger().info(f"Back tag at: {self.back_tag.transform.translation.x, self.back_tag.transform.translation.y, self.back_tag.transform.translation.z}")
       except TransformException as e:
          # self.get_logger().info(f"No transform found: {e}")
          return
       
+   def locate_right(self):
+      try:
+         self.right_tag = self.tf_buffer.lookup_transform("map", "right_tag", rclpy.time.Time())
+         # self.get_logger().info(f"Right tag at: {self.right_tag.transform.translation.x, self.right_tag.transform.translation.y, self.right_tag.transform.translation.z}")
+      except TransformException as e:
+         # self.get_logger().info(f"No transform found: {e}")
+         return
+   
+   def locate_left(self):
+      try:
+         self.left_tag = self.tf_buffer.lookup_transform("map", "left_tag", rclpy.time.Time())
+         # self.get_logger().info(f"Left tag at: {self.left_tag.transform.translation.x, self.left_tag.transform.translation.y, self.left_tag.transform.translation.z}")
+      except TransformException as e:
+         # self.get_logger().info(f"No transform found: {e}")
+         return
+      
+   # write a function to determine which tag is the most recent
+   def get_recent_tag(self):
+      # Determine which tag is the most recent
+      if self.back_tag.header.stamp.sec > self.time0.sec:
+         if self.back_tag.header.stamp.sec > self.right_tag.header.stamp.sec and self.back_tag.header.stamp.sec > self.left_tag.header.stamp.sec:
+            self.recent_tag_x = self.back_tag.transform.translation.x
+            self.recent_tag_y = self.back_tag.transform.translation.y
+            self.recent_tag_z = self.back_tag.transform.translation.z
+
+            self.get_logger().info(f"Back tag is most recent")
+
+      if self.right_tag.header.stamp.sec > self.time0.sec:
+         if self.right_tag.header.stamp.sec > self.back_tag.header.stamp.sec and self.right_tag.header.stamp.sec > self.left_tag.header.stamp.sec:
+            self.recent_tag_x = self.right_tag.transform.translation.x
+            self.recent_tag_y = self.right_tag.transform.translation.y
+            self.recent_tag_z = self.right_tag.transform.translation.z
+
+            self.get_logger().info(f"Right tag is most recent")
+
+      if self.left_tag.header.stamp.sec > self.time0.sec:
+         if self.left_tag.header.stamp.sec > self.back_tag.header.stamp.sec and self.left_tag.header.stamp.sec > self.right_tag.header.stamp.sec:
+            self.recent_tag_x = self.left_tag.transform.translation.x
+            self.recent_tag_y = self.left_tag.transform.translation.y
+            self.recent_tag_z = self.left_tag.transform.translation.z
+
+            self.get_logger().info(f"Left tag is most recent")
+   
+   # def get_recent_tag(self):
+
+
+
+
+
+
+
+
+
+
+   #    self.old_back_x = self.back_tag.transform.translation.x
+   #    self.old_back_y = self.back_tag.transform.translation.y
+   #    self.old_back_z = self.back_tag.transform.translation.z
+
+   #    self.old_right_x = self.right_tag.transform.translation.x
+   #    self.old_right_y = self.right_tag.transform.translation.y
+   #    self.old_right_z = self.right_tag.transform.translation.z
+
+   #    self.old_left_x = self.left_tag.transform.translation.x
+   #    self.old_left_y = self.left_tag.transform.translation.y
+   #    self.old_left_z = self.left_tag.transform.translation.z
+
+
+
+
+
+
+
+
+      # # Determine which tag is the most recent
+      # if self.back_tag.header.stamp.seconds() > self.right_tag.header.stamp.seconds() and self.back_tag.header.stamp.seconds() > self.left_tag.header.stamp.seconds():
+      #    self.recent_tag_x = self.back_tag.transform.translation.x
+      #    self.recent_tag_y = self.back_tag.transform.translation.y
+      #    self.recent_tag_z = self.back_tag.transform.translation.z
+
+      #    self.get_logger().info(f"Back tag is most recent")
+
+      # elif self.right_tag.header.stamp.seconds() > self.back_tag.header.stamp.seconds() and self.right_tag.header.stamp.seconds() > self.left_tag.header.stamp.seconds():
+      #    self.recent_tag_x = self.right_tag.transform.translation.x
+      #    self.recent_tag_y = self.right_tag.transform.translation.y
+      #    self.recent_tag_z = self.right_tag.transform.translation.z
+
+      #    self.get_logger().info(f"Right tag is most recent")
+
+      # elif self.left_tag.header.stamp.seconds() > self.back_tag.header.stamp.seconds() and self.left_tag.header.stamp.seconds() > self.right_tag.header.stamp.seconds():
+      #    self.recent_tag_x = self.left_tag.transform.translation.x
+      #    self.recent_tag_y = self.left_tag.transform.translation.y
+      #    self.recent_tag_z = self.left_tag.transform.translation.z
+
+      #    self.get_logger().info(f"Left tag is most recent")
+
+      
    def broadcast_drone(self): # Essentially just the publishing the back_tag transform
-      if self.drone_tf:
-         self.drone_tf2 = TransformStamped()
-         self.drone_tf2.header.stamp = self.get_clock().now().to_msg()
-         self.drone_tf2.header.frame_id = "chassis"
-         self.drone_tf2.child_frame_id = "drone"
+      if self.back_tag:
+         self.drone_tf = TransformStamped()
+         self.drone_tf.header.stamp = self.get_clock().now().to_msg()
+         self.drone_tf.header.frame_id = "chassis"
+         self.drone_tf.child_frame_id = "drone"
 
-         self.drone_tf2.transform.translation.x = self.drone_tf.transform.translation.z
-         self.drone_tf2.transform.translation.y = self.drone_tf.transform.translation.x - 0.25
-         self.drone_tf2.transform.translation.z = self.drone_tf.transform.translation.y
+         self.drone_tf.transform.translation.x = self.back_tag.transform.translation.z
+         self.drone_tf.transform.translation.y = self.back_tag.transform.translation.x - 0.25
+         self.drone_tf.transform.translation.z = self.back_tag.transform.translation.y
 
-         self.drone_tf2.transform.rotation.x = self.drone_tf.transform.rotation.x
-         self.drone_tf2.transform.rotation.y = self.drone_tf.transform.rotation.y
-         self.drone_tf2.transform.rotation.z = self.drone_tf.transform.rotation.z
-         self.drone_tf2.transform.rotation.w = self.drone_tf.transform.rotation.w
+         self.drone_tf.transform.rotation.x = self.back_tag.transform.rotation.x
+         self.drone_tf.transform.rotation.y = self.back_tag.transform.rotation.y
+         self.drone_tf.transform.rotation.z = self.back_tag.transform.rotation.z
+         self.drone_tf.transform.rotation.w = self.back_tag.transform.rotation.w
 
-         self.tf_broadcaster.sendTransform(self.drone_tf2)
+         self.tf_broadcaster.sendTransform(self.drone_tf)
 
-         if (self.temp_x != self.drone_tf2.transform.translation.x or 
-            self.temp_y != self.drone_tf2.transform.translation.y or 
-            self.temp_z != self.drone_tf2.transform.translation.z):
-               self.get_logger().info(f"Drone at: {self.drone_tf2.transform.translation.x, self.drone_tf2.transform.translation.y, self.drone_tf2.transform.translation.z}")
+         if (self.temp_x != self.drone_tf.transform.translation.x or 
+            self.temp_y != self.drone_tf.transform.translation.y or 
+            self.temp_z != self.drone_tf.transform.translation.z):
+               self.get_logger().info(f"Drone at: {self.drone_tf.transform.translation.x, self.drone_tf.transform.translation.y, self.drone_tf.transform.translation.z}")
 
-         self.temp_x = self.drone_tf2.transform.translation.x
-         self.temp_y = self.drone_tf2.transform.translation.y
-         self.temp_z = self.drone_tf2.transform.translation.z
+         self.temp_x = self.drone_tf.transform.translation.x
+         self.temp_y = self.drone_tf.transform.translation.y
+         self.temp_z = self.drone_tf.transform.translation.z
 
       else:
          # self.get_logger().info("No drone transform to broadcast")
@@ -373,18 +501,18 @@ class Drone(Node):
       self.drone.move_up(30) # Ensure drone is above platform
 
       # Move forward to the platform
-      x = int(10 + self.drone_tf2.transform.translation.x * 100)
+      x = int(10 + self.drone_tf.transform.translation.x * 100)
       self.drone.move_left(20) # accounting for the rightward drift (may be specific to my Tello drone, so adjust as needed)
       self.drone.move_forward(x)
 
       # Move left/right towards the platform
-      if self.drone_tf2.transform.translation.x < 0: # When the drone is to the left, the y value is logged as negative (so, move right)
+      if self.drone_tf.transform.translation.x < 0: # When the drone is to the left, the y value is logged as negative (so, move right)
          # Move right
-         y = abs(int(self.drone_tf2.transform.translation.y * 100))
+         y = abs(int(self.drone_tf.transform.translation.y * 100))
          self.drone.move_right(y)
       else:
          # Move left
-         y = abs(int(self.drone_tf2.transform.translation.y * 100))
+         y = abs(int(self.drone_tf.transform.translation.y * 100))
          self.drone.move_left(y)
       
       self.drone.land()
