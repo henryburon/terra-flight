@@ -195,12 +195,14 @@ class Drone(Node):
          if self.recent_tag_x != None and self.recent_tag_y != None and self.recent_tag_z != None:            
             font_scale = 1
 
-            if self.recent_tag == "back_tag":
-               location_text = f"Rover location: {round(self.recent_tag_z, 2), round(self.recent_tag_x, 2), round(self.recent_tag_y, 2)}"
-            elif self.recent_tag == "right_tag":
-               pass
-            elif self.recent_tag == "left_tag":
-               pass
+            location_text = f"Rover location: {round(self.recent_tag_z, 2), round(self.recent_tag_x, 2), round(self.recent_tag_y, 2)}"
+
+            # if self.recent_tag == "back_tag":
+            #    location_text = f"Rover location: {round(self.recent_tag_z, 2), round(self.recent_tag_x, 2), round(self.recent_tag_y, 2)}"
+            # elif self.recent_tag == "right_tag":
+            #    pass
+            # elif self.recent_tag == "left_tag":
+            #    pass
 
          else:
             location_text = "Rover not located"
@@ -378,7 +380,7 @@ class Drone(Node):
       if self.back_tag.header.stamp.sec > self.time0.sec:
          if self.back_tag.header.stamp.sec > self.right_tag.header.stamp.sec and self.back_tag.header.stamp.sec > self.left_tag.header.stamp.sec:
             self.recent_tag_x = self.back_tag.transform.translation.x
-            self.recent_tag_y = self.back_tag.transform.translation.y
+            self.recent_tag_y = -self.back_tag.transform.translation.y
             self.recent_tag_z = self.back_tag.transform.translation.z
 
             self.recent_tag = "back_tag"
@@ -386,7 +388,7 @@ class Drone(Node):
       if self.right_tag.header.stamp.sec > self.time0.sec:
          if self.right_tag.header.stamp.sec > self.back_tag.header.stamp.sec and self.right_tag.header.stamp.sec > self.left_tag.header.stamp.sec:
             self.recent_tag_x = self.right_tag.transform.translation.x
-            self.recent_tag_y = self.right_tag.transform.translation.y
+            self.recent_tag_y = -self.right_tag.transform.translation.y
             self.recent_tag_z = self.right_tag.transform.translation.z
 
             self.recent_tag = "right_tag"
@@ -394,7 +396,7 @@ class Drone(Node):
       if self.left_tag.header.stamp.sec > self.time0.sec:
          if self.left_tag.header.stamp.sec > self.back_tag.header.stamp.sec and self.left_tag.header.stamp.sec > self.right_tag.header.stamp.sec:
             self.recent_tag_x = self.left_tag.transform.translation.x
-            self.recent_tag_y = self.left_tag.transform.translation.y
+            self.recent_tag_y = -self.left_tag.transform.translation.y
             self.recent_tag_z = self.left_tag.transform.translation.z
 
             self.recent_tag = "left_tag"
