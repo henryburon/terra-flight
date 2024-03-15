@@ -113,9 +113,14 @@ class Drone(Node):
       # TF Listener
       self.tf_buffer = Buffer()
       self.tf_listener = TransformListener(self.tf_buffer, self)
-      # self.back_tag = None
-      # self.left_tag = None
-      # self.right_tag = None
+      self.back_tag = TransformStamped()
+      self.back_tag.header.stamp = Time()
+
+      self.right_tag = TransformStamped()
+      self.right_tag.header.stamp = Time()
+
+      self.left_tag = TransformStamped()
+      self.left_tag.header.stamp = Time()
 
       # TF Broadcaster
       self.tf_broadcaster = TransformBroadcaster(self)
@@ -158,20 +163,27 @@ class Drone(Node):
       self.temp_y = 0.0
       self.temp_z = 0.0
 
+      self.recent_tag = None
       self.recent_tag_x = None
       self.recent_tag_y = None
       self.recent_tag_z = None
 
-      self.back_tag = TransformStamped()
-      self.back_tag.header.stamp = Time()
-
-      self.right_tag = TransformStamped()
-      self.right_tag.header.stamp = Time()
-
-      self.left_tag = TransformStamped()
-      self.left_tag.header.stamp = Time()
+      self.old_x = 0
+      self.old_y = 0
+      self.old_z = 0
 
       self.time0 = Time(sec=0)
+      self.update_time = 0
+      self.flag = False
+
+   def get_color(self, update_time):
+      value = min(update_time / 15, 1)
+
+      # Calculate green and red components
+      green = int((1 - value) * 255)
+      red = int(value * 255)
+
+      return (red, green, 0)
 
    def drone_image_callback(self):      
 
@@ -180,27 +192,62 @@ class Drone(Node):
          image = self.drone.get_frame_read()
          resized = cv2.resize(image.frame, (0,0), fx=1.0, fy=1.0, interpolation=cv2.INTER_AREA)
 
-         # if self.recent_tag_x != None and self.recent_tag_y != None and self.recent_tag_z != None:
+         if self.recent_tag_x != None and self.recent_tag_y != None and self.recent_tag_z != None:            
+            font_scale = 1
 
+            if self.recent_tag == "back_tag":
+               location_text = f"Rover location: {round(self.recent_tag_z, 2), round(self.recent_tag_x, 2), round(self.recent_tag_y, 2)}"
+            elif self.recent_tag == "right_tag":
+               pass
+            elif self.recent_tag == "left_tag":
+               pass
+
+         else:
+            location_text = "Rover not located"
+            font_scale = 1
 
          # else:
-         text = "Rover not in view"
          font = cv2.FONT_HERSHEY_SIMPLEX
-         font_scale = 2
          font_color = (0, 0, 0)  # Black text
-         font_thickness = 2
-         text_size, _ = cv2.getTextSize(text, font, font_scale, font_thickness)
+         font_thickness = 3
+         text_size, _ = cv2.getTextSize(location_text, font, font_scale, font_thickness)
 
          # Add some padding around the text
          padding = 20
          text_x = (resized.shape[1] - text_size[0]) // 2  # Centered horizontally
          text_y = resized.shape[0] - padding - 35 # Near the bottom edge. Negative makes it go up
 
-         # Draw a white rectangle around the text
-         box_coords = ((text_x - padding, text_y + padding), (text_x + text_size[0] + padding, text_y - text_size[1] - padding))
-         cv2.rectangle(resized, box_coords[0], box_coords[1], (255, 255, 255), cv2.FILLED)
+         current_time = self.get_clock().now().to_msg().sec
 
-         cv2.putText(resized, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
+         # if self.back_tag or self.right_tag or self.left_tag:
+         if self.recent_tag_x != None and self.recent_tag_y != None and self.recent_tag_z != None:
+            # Get current time in seconds
+            update = current_time - self.update_time
+
+            # Time text
+            time_text = f"Updated: {update}s ago"
+            time_text_size, _ = cv2.getTextSize(time_text, font, font_scale, font_thickness)
+            time_text_x = (resized.shape[1] - time_text_size[0]) // 2  # Centered horizontally
+            time_text_y = text_y - time_text_size[1] - padding
+
+
+            # White rectangle around the text
+            box_coords = ((text_x - padding, time_text_y - padding - 15), (text_x + max(text_size[0], time_text_size[0]) + padding, text_y + padding))
+
+            # Draw
+            color = self.get_color(update)
+            
+            cv2.rectangle(resized, box_coords[0], box_coords[1], color, cv2.FILLED)
+            cv2.putText(resized, location_text, (text_x, text_y), font, font_scale, font_color, font_thickness)
+            cv2.putText(resized, time_text, (time_text_x, time_text_y), font, font_scale, font_color, font_thickness)
+
+         else:
+            # White rectangle around the text
+            box_coords = ((text_x - padding, text_y - padding - 15), (text_x + text_size[0] + padding, text_y + padding))
+
+            # Draw
+            cv2.rectangle(resized, box_coords[0], box_coords[1], (255, 255, 255), cv2.FILLED)
+            cv2.putText(resized, location_text, (text_x, text_y), font, font_scale, font_color, font_thickness)
 
          # Publish image
          msg_img = Image()
@@ -334,7 +381,7 @@ class Drone(Node):
             self.recent_tag_y = self.back_tag.transform.translation.y
             self.recent_tag_z = self.back_tag.transform.translation.z
 
-            self.get_logger().info(f"Back tag is most recent")
+            self.recent_tag = "back_tag"
 
       if self.right_tag.header.stamp.sec > self.time0.sec:
          if self.right_tag.header.stamp.sec > self.back_tag.header.stamp.sec and self.right_tag.header.stamp.sec > self.left_tag.header.stamp.sec:
@@ -342,7 +389,7 @@ class Drone(Node):
             self.recent_tag_y = self.right_tag.transform.translation.y
             self.recent_tag_z = self.right_tag.transform.translation.z
 
-            self.get_logger().info(f"Right tag is most recent")
+            self.recent_tag = "right_tag"
 
       if self.left_tag.header.stamp.sec > self.time0.sec:
          if self.left_tag.header.stamp.sec > self.back_tag.header.stamp.sec and self.left_tag.header.stamp.sec > self.right_tag.header.stamp.sec:
@@ -350,60 +397,15 @@ class Drone(Node):
             self.recent_tag_y = self.left_tag.transform.translation.y
             self.recent_tag_z = self.left_tag.transform.translation.z
 
-            self.get_logger().info(f"Left tag is most recent")
-   
-   # def get_recent_tag(self):
+            self.recent_tag = "left_tag"
 
+      # If the most recent tag is the same as the previous tag, then update the time (i.e. if it got another reading)
+      if self.old_x != self.recent_tag_x or self.old_y != self.recent_tag_y or self.old_z != self.recent_tag_z:
+         self.update_time = self.get_clock().now().to_msg().sec
 
-
-
-
-
-
-
-
-
-   #    self.old_back_x = self.back_tag.transform.translation.x
-   #    self.old_back_y = self.back_tag.transform.translation.y
-   #    self.old_back_z = self.back_tag.transform.translation.z
-
-   #    self.old_right_x = self.right_tag.transform.translation.x
-   #    self.old_right_y = self.right_tag.transform.translation.y
-   #    self.old_right_z = self.right_tag.transform.translation.z
-
-   #    self.old_left_x = self.left_tag.transform.translation.x
-   #    self.old_left_y = self.left_tag.transform.translation.y
-   #    self.old_left_z = self.left_tag.transform.translation.z
-
-
-
-
-
-
-
-
-      # # Determine which tag is the most recent
-      # if self.back_tag.header.stamp.seconds() > self.right_tag.header.stamp.seconds() and self.back_tag.header.stamp.seconds() > self.left_tag.header.stamp.seconds():
-      #    self.recent_tag_x = self.back_tag.transform.translation.x
-      #    self.recent_tag_y = self.back_tag.transform.translation.y
-      #    self.recent_tag_z = self.back_tag.transform.translation.z
-
-      #    self.get_logger().info(f"Back tag is most recent")
-
-      # elif self.right_tag.header.stamp.seconds() > self.back_tag.header.stamp.seconds() and self.right_tag.header.stamp.seconds() > self.left_tag.header.stamp.seconds():
-      #    self.recent_tag_x = self.right_tag.transform.translation.x
-      #    self.recent_tag_y = self.right_tag.transform.translation.y
-      #    self.recent_tag_z = self.right_tag.transform.translation.z
-
-      #    self.get_logger().info(f"Right tag is most recent")
-
-      # elif self.left_tag.header.stamp.seconds() > self.back_tag.header.stamp.seconds() and self.left_tag.header.stamp.seconds() > self.right_tag.header.stamp.seconds():
-      #    self.recent_tag_x = self.left_tag.transform.translation.x
-      #    self.recent_tag_y = self.left_tag.transform.translation.y
-      #    self.recent_tag_z = self.left_tag.transform.translation.z
-
-      #    self.get_logger().info(f"Left tag is most recent")
-
+      self.old_x = self.recent_tag_x
+      self.old_y = self.recent_tag_y
+      self.old_z = self.recent_tag_z
       
    def broadcast_drone(self): # Essentially just the publishing the back_tag transform
       if self.back_tag:
@@ -426,8 +428,9 @@ class Drone(Node):
          if (self.temp_x != self.drone_tf.transform.translation.x or 
             self.temp_y != self.drone_tf.transform.translation.y or 
             self.temp_z != self.drone_tf.transform.translation.z):
-               self.get_logger().info(f"Drone at: {self.drone_tf.transform.translation.x, self.drone_tf.transform.translation.y, self.drone_tf.transform.translation.z}")
-
+               # self.get_logger().info(f"Drone at: {self.drone_tf.transform.translation.x, self.drone_tf.transform.translation.y, self.drone_tf.transform.translation.z}")
+               pass
+         
          self.temp_x = self.drone_tf.transform.translation.x
          self.temp_y = self.drone_tf.transform.translation.y
          self.temp_z = self.drone_tf.transform.translation.z
