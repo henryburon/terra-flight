@@ -12,6 +12,8 @@ setup(
         ('share/' + package_name, ['package.xml',
                                    'launch/base_station.launch.xml',
                                    'launch/robot.launch.xml',
+                                   'launch/drone.launch.xml',
+                                   'config/tello_drone.rviz',
                                    'config/tags.yaml',
                                    'config/tello_camera_config.yaml']),
     ],

@@ -1,0 +1,22 @@
+<launch>
+
+   <!-- This launchfile only launches the drone and related nodes. It is used for testing
+   the drone without having to launch the base station. -->
+
+   <node pkg="rviz2" exec="rviz2" args="-d $(find-pkg-share terraflight_control)/tello_drone.rviz"/>
+
+   <node pkg="joy" exec="joy_node"/>
+   <node pkg="terraflight_control" exec="base_station"/>
+
+   <node pkg="terraflight_control" exec="drone">
+      <param from="$(find-pkg-share terraflight_control)/tello_camera_config.yaml"/>
+   </node>
+
+   <node pkg="apriltag_ros" exec="apriltag_node" name="apriltag_node">
+      <param from="$(find-pkg-share terraflight_control)/tags.yaml"/>
+      <remap from="image_rect" to="drone_camera"/>
+      <remap from="camera_info" to="drone_camera_info"/>
+   </node>
+
+
+</launch>

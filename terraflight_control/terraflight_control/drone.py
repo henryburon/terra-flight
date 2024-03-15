@@ -99,7 +99,7 @@ class Drone(Node):
       while not self.auto_land_client.wait_for_service(timeout_sec=1.0):
          self.get_logger().info("Auto land service not available, waiting again...")
 
-      # Initialize variables for Tello Drone
+      # Initialize the Tello Drone
       self.drone = tello.Tello()
       self.drone.connect()
       self.drone.streamon()
@@ -117,7 +117,6 @@ class Drone(Node):
 
       # Timers
       self.drone_camera_timer = self.create_timer(1/2, self.drone_image_callback)
-      # self.drone_camera_info_timer = self.create_timer(1/5, self.drone_camera_info_callback)
       self.tf_timer = self.create_timer(1/100, self.tf_timer_callback)
 
       # Parameters
@@ -149,8 +148,6 @@ class Drone(Node):
       self.tf_top_static_broadcaster = StaticTransformBroadcaster(self)
       self.tf_back_static_broadcaster = StaticTransformBroadcaster(self)
 
-      # self.make_top_static_apriltag_transforms()
-      # self.make_back_static_apriltag_transforms()
       self.temp_x = 0.0
       self.temp_y = 0.0
       self.temp_z = 0.0
@@ -161,6 +158,24 @@ class Drone(Node):
          # Fetch image from drone
          image = self.drone.get_frame_read()
          resized = cv2.resize(image.frame, (0,0), fx=1.0, fy=1.0, interpolation=cv2.INTER_AREA)
+
+         text = "Rover not in view"
+         font = cv2.FONT_HERSHEY_SIMPLEX
+         font_scale = 2
+         font_color = (0, 0, 0)  # Black text
+         font_thickness = 2
+         text_size, _ = cv2.getTextSize(text, font, font_scale, font_thickness)
+
+         # Add some padding around the text
+         padding = 20
+         text_x = (resized.shape[1] - text_size[0]) // 2  # Centered horizontally
+         text_y = resized.shape[0] - padding - 35 # Near the bottom edge. Negative makes it go up
+
+         # Draw a white rectangle around the text
+         box_coords = ((text_x - padding, text_y + padding), (text_x + text_size[0] + padding, text_y - text_size[1] - padding))
+         cv2.rectangle(resized, box_coords[0], box_coords[1], (255, 255, 255), cv2.FILLED)
+
+         cv2.putText(resized, text, (text_x, text_y), font, font_scale, font_color, font_thickness)
 
          # Publish image
          msg_img = Image()
@@ -288,8 +303,6 @@ class Drone(Node):
          self.temp_x = self.drone_tf2.transform.translation.x
          self.temp_y = self.drone_tf2.transform.translation.y
          self.temp_z = self.drone_tf2.transform.translation.z
-
-
 
       else:
          # self.get_logger().info("No drone transform to broadcast")
