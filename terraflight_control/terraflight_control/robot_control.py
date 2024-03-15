@@ -50,7 +50,8 @@ class Robot_Control(Node):
         self.pwm_back_left.start(duty_cycle)
         self.pwm_back_right.start(duty_cycle)
 
-        self.speed_offset = 50
+        # Speed offset: higher = slower speed
+        self.speed_offset = 65
 
     def timer_callback(self):
         self.command_wheels()

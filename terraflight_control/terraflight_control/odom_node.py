@@ -120,7 +120,6 @@ class OdomNode(Node):
                 data = self.ser.readline().decode('utf-8').strip()
                 if data:
                     self.all_rotations = [float(x) / 8 for x in data.split(" ")] # div by 4 gives it the 753.2 ticks per rotation
-                    # self.get_logger().info(f"Rotations: {self.all_rotations}")
             except Exception as e:
                 self.get_logger().error(f"Error: {e}")
 

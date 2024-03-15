@@ -70,7 +70,7 @@ class Robot_Camera(Node):
       elif msg.buttons[10] == 0:
          self.allow_switch_state_flag = True
    
-      self.get_logger().info(f"State: {self.state}")
+      self.get_logger().info(f"State: {self.state}", once=True)
       
 def robot_camera_entry(args=None):
    rclpy.init(args=args)
