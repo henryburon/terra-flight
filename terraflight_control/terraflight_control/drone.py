@@ -195,14 +195,7 @@ class Drone(Node):
          if self.recent_tag_x != None and self.recent_tag_y != None and self.recent_tag_z != None:            
             font_scale = 1
 
-            location_text = f"Rover location: {round(self.recent_tag_z, 2), round(self.recent_tag_x, 2), round(self.recent_tag_y, 2)}"
-
-            # if self.recent_tag == "back_tag":
-            #    location_text = f"Rover location: {round(self.recent_tag_z, 2), round(self.recent_tag_x, 2), round(self.recent_tag_y, 2)}"
-            # elif self.recent_tag == "right_tag":
-            #    pass
-            # elif self.recent_tag == "left_tag":
-            #    pass
+            location_text = f"Rover location (m): {round(self.recent_tag_z, 2), round(self.recent_tag_x, 2), round(self.recent_tag_y, 2)}"
 
          else:
             location_text = "Rover not located"
@@ -408,6 +401,10 @@ class Drone(Node):
       self.old_x = self.recent_tag_x
       self.old_y = self.recent_tag_y
       self.old_z = self.recent_tag_z
+
+      self.move_x = self.recent_tag_z
+      self.move_y = self.recent_tag_x
+      self.move_z = self.recent_tag_y
       
    def broadcast_drone(self): # Essentially just the publishing the back_tag transform
       if self.back_tag:
@@ -503,22 +500,30 @@ class Drone(Node):
          return response
       self.get_logger().info("Drone is auto landing")
 
+      self.get_logger().info("Moving up 50 cm to clear the platform.")
       self.drone.move_up(30) # Ensure drone is above platform
 
       # Move forward to the platform
-      x = int(10 + self.drone_tf.transform.translation.x * 100)
-      self.drone.move_left(20) # accounting for the rightward drift (may be specific to my Tello drone, so adjust as needed)
+      x_offset = 10
+      x = int(x_offset + (self.move_x * 100))
+      # self.drone.move_left(20) # accounting for the rightward drift (may be specific to my Tello drone, so adjust as needed)
       self.drone.move_forward(x)
 
       # Move left/right towards the platform
-      if self.drone_tf.transform.translation.x < 0: # When the drone is to the left, the y value is logged as negative (so, move right)
+      if self.move_y < 0: # When the drone is to the left, the y value is logged as negative (so, move right)
          # Move right
-         y = abs(int(self.drone_tf.transform.translation.y * 100))
+         y = abs(int(self.move_y * 100))
          self.drone.move_right(y)
       else:
          # Move left
-         y = abs(int(self.drone_tf.transform.translation.y * 100))
+         y = abs(int(self.move_y * 100))
          self.drone.move_left(y)
+
+      # Re-orient the drone to face the platform (if necessary)
+      if self.recent_tag == "left_tag":
+         self.drone.rotate_counter_clockwise(90)
+      elif self.recent_tag == "right_tag":
+         self.drone.rotate_clockwise(90)
       
       self.drone.land()
       return response
