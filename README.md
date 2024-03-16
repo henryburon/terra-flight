@@ -59,10 +59,13 @@ The robot uses a [DJI Tello](https://store.dji.com/product/tello?vid=38421) dron
 
 To control the drone, the host computer must be connected to the drone's WiFi. For this reason, the base station uses a WiFi adapter to simultaneously connect the drone's network and the network shared with the Raspberry Pi 4.
 
-The drone is controlled through its Python API.
+The drone is controlled through its [Python API](https://djitellopy.readthedocs.io/en/latest/tello/).
 
 ## Rover
 
+The custom-built rover was inspired by the [NASA JPL Open Source Rover](https://github.com/nasa-jpl/open-source-rover/tree/master)
+
+Terraflight uses the full drive train from the above rover.
 
 
 ## Requirements
