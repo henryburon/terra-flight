@@ -345,7 +345,7 @@ class Drone(Node):
 
    def locate_back(self):
       try:
-         self.back_tag = self.tf_buffer.lookup_transform("chassis", "back_tag", rclpy.time.Time())
+         self.back_tag = self.tf_buffer.lookup_transform("map", "back_tag", rclpy.time.Time())
          # self.get_logger().info(f"Back tag at: {self.back_tag.transform.translation.x, self.back_tag.transform.translation.y, self.back_tag.transform.translation.z}")
       except TransformException as e:
          # self.get_logger().info(f"No transform found: {e}")
@@ -353,7 +353,7 @@ class Drone(Node):
       
    def locate_right(self):
       try:
-         self.right_tag = self.tf_buffer.lookup_transform("chassis", "right_tag", rclpy.time.Time())
+         self.right_tag = self.tf_buffer.lookup_transform("map", "right_tag", rclpy.time.Time())
          # self.get_logger().info(f"Right tag at: {self.right_tag.transform.translation.x, self.right_tag.transform.translation.y, self.right_tag.transform.translation.z}")
       except TransformException as e:
          # self.get_logger().info(f"No transform found: {e}")
@@ -361,7 +361,7 @@ class Drone(Node):
    
    def locate_left(self):
       try:
-         self.left_tag = self.tf_buffer.lookup_transform("chassis", "left_tag", rclpy.time.Time())
+         self.left_tag = self.tf_buffer.lookup_transform("map", "left_tag", rclpy.time.Time())
          # self.get_logger().info(f"Left tag at: {self.left_tag.transform.translation.x, self.left_tag.transform.translation.y, self.left_tag.transform.translation.z}")
       except TransformException as e:
          # self.get_logger().info(f"No transform found: {e}")
@@ -506,7 +506,7 @@ class Drone(Node):
       # Move forward to the platform
       x_offset = 10
       x = int(x_offset + (self.move_x * 100))
-      # self.drone.move_left(20) # accounting for the rightward drift (may be specific to my Tello drone, so adjust as needed)
+      self.drone.move_right(40) # accounting for the rightward drift (may be specific to my Tello drone, so adjust as needed)
       self.drone.move_forward(x)
 
       # Move left/right towards the platform
